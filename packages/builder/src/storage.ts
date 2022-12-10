@@ -2,12 +2,13 @@ import os from 'node:os';
 import fs from 'fs-extra';
 import path from 'path';
 import AdmZip from 'adm-zip';
-import { DeploymentInfo, DeploymentManifest } from './types';
+import { ChainArtifacts, DeploymentInfo, DeploymentManifest } from './types';
 import _ from 'lodash';
 
 import type { RawChainDefinition } from './definition';
 
 import Debug from 'debug';
+import { ethers } from 'ethers';
 const debug = Debug('cannon:builder:storage');
 
 const DEPLOY_FILE_INDENTATION = 4;
@@ -53,6 +54,31 @@ export async function putDeploymentInfo(packageDir: string, chainId: number, lab
   deployInfo.npmPackage = pkg;
 
   await fs.writeFile(getDeploymentInfoFile(packageDir), JSON.stringify(deployInfo, null, DEPLOY_FILE_INDENTATION));
+}
+
+export async function clearCachedSteps(packageDir: string) {
+  await fs.rm(path.join(packageDir, 'steps'));
+}
+
+export async function putCachedStep(packageDir: string, stepHash: string, info: { txns: ethers.Transaction[], output: ChainArtifacts }) {
+  const f = path.join(packageDir, 'steps', stepHash + '.json');
+
+  await fs.mkdirp(path.dirname(f));
+
+  await fs.writeJson(f, {
+    txns: info.txns.map(txn => _.pick(txn, 'from', 'to', 'data', 'value')),
+    output: info.output
+  });
+}
+
+export async function getCachedStep(packageDir: string, stepHash: string): Promise<{ txns: ethers.providers.TransactionRequest[], output: ChainArtifacts }|null> {
+  const f = path.join(packageDir, 'steps', stepHash + '.json');
+
+  if (fs.existsSync(f)) {
+    return fs.readJson(f);
+  }
+
+  return null;
 }
 
 export async function clearDeploymentInfo(packageDir: string, chainId: number, label: string) {

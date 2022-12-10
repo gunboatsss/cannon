@@ -11,7 +11,7 @@ import {
 import { PackageDefinition } from '../types';
 import { setupAnvil } from '../helpers';
 import { CannonRpcNode, getProvider } from '../rpc';
-import createRegistry from '../registry';
+import { createRegistry } from '../registry';
 import { interact } from '../interact';
 import { resolve } from 'path';
 import onKeypress from '../util/on-keypress';

@@ -17,6 +17,7 @@ import './tasks/export';
 import './tasks/import';
 import './tasks/inspect';
 import './tasks/packages';
+import './tasks/plan';
 import './tasks/publish';
 import './tasks/run';
 import './tasks/verify';

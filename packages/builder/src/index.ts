@@ -6,7 +6,7 @@ import { getSavedPackagesDir, getActionFiles, getPackageDir, getAllDeploymentInf
 import semver from 'semver';
 
 import pkg from '../package.json';
-import { CannonWrapperGenericProvider } from './error/provider';
+import { CannonWrapperGenericProvider } from './provider';
 
 export { RawChainDefinition, ChainDefinition, validateChainDefinition } from './definition';
 export { ChainBuilder, Events } from './builder';
@@ -15,7 +15,7 @@ export * from './types';
 
 export * from './storage';
 
-export { CannonWrapperGenericProvider } from './error/provider';
+export { CannonWrapperGenericProvider } from './provider';
 
 export { handleTxnError } from './error';
 

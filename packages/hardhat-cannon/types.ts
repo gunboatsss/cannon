@@ -10,5 +10,4 @@ export interface CannonDeploy {
 export interface DeploymentArtifact {
   abi: any[];
   address: string;
-  deployTxnHash: string;
 }

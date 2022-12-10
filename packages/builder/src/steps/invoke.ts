@@ -287,7 +287,6 @@ ${getAllContractPaths(ctx).join('\n')}`);
         contracts[k] = {
           address: contractAddress,
           abi,
-          deployTxnHash: txns[0].hash, // TODO: this should g ive more than the first hash
           constructorArgs: factoryInfo.constructorArgs,
           sourceName: sourceName,
           contractName: contractName,

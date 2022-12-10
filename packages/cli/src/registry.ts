@@ -8,7 +8,7 @@ interface Options {
   ipfsAuthorizationHeader?: string;
 }
 
-export default function createRegistry({ registryAddress, registryRpc, ipfsUrl, ipfsAuthorizationHeader }: Options) {
+export function createRegistry({ registryAddress, registryRpc, ipfsUrl, ipfsAuthorizationHeader }: Options) {
   const ipfsOptions: ConstructorParameters<typeof ReadOnlyCannonRegistry>[0]['ipfsOptions'] = { url: ipfsUrl };
 
   if (ipfsAuthorizationHeader) {

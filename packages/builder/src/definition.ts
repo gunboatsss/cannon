@@ -13,6 +13,7 @@ import { ChainBuilderRuntime } from './types';
 
 import Ajv from 'ajv/dist/jtd';
 import { JTDDataType } from 'ajv/dist/core';
+import { hashObj } from './util';
 
 const ajv = new Ajv();
 
@@ -144,7 +145,7 @@ export class ChainDefinition {
     if (!obj) {
       return null;
     } else {
-      return crypto.createHash('md5').update(JSON.stringify(obj)).digest('hex');
+      return hashObj(obj).toString('hex');
     }
   }
 

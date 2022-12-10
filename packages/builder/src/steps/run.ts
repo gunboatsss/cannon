@@ -4,7 +4,8 @@ import { JTDDataType } from 'ajv/dist/core';
 
 import { importFrom } from '../helpers/import-from';
 import { ChainBuilderContext, ChainBuilderRuntime, ChainArtifacts } from '../types';
-import { hashFs } from '../util';
+import { hashFs, hashObj } from '../util';
+import { getCachedStep, putCachedStep } from '../storage';
 
 const debug = Debug('cannon:builder:run');
 
@@ -87,6 +88,21 @@ export default {
   async exec(runtime: ChainBuilderRuntime, ctx: ChainBuilderContext, config: Config): Promise<ChainArtifacts> {
     debug('exec', config);
 
+    const stateHash = hashObj(config).toString('hex');
+
+    debug(`run step state hash: ${stateHash}`);
+
+    const cachedStep = await getCachedStep(runtime.packageDir!, stateHash);
+    if (cachedStep) {
+      debug(`loaded ${cachedStep.txns.length} cached transactions`);
+
+      for (const txn of cachedStep.txns) {
+        await (await runtime.getSigner(txn.from!)).sendTransaction(txn);
+      }
+
+      return cachedStep.output;
+    }
+
     if (!runtime.baseDir) {
       throw new Error(
         'run steps cannot be executed outside of their original project directory. This is likely a misconfiguration upstream.'
@@ -95,7 +111,9 @@ export default {
 
     const runfile = await importFrom(runtime.baseDir, config.exec);
 
+    runtime.provider.resetRecordedTransactions();
     const outputs = (await runfile[config.func](runtime, ...(config.args || []))) as Omit<ChainArtifacts, 'deployedOn'>;
+
 
     if (!_.isObject(outputs)) {
       throw new Error(
@@ -112,6 +130,14 @@ export default {
       ...t,
       deployedOn: runtime.currentLabel!,
     }));
+
+    const txns = runtime.provider.resetRecordedTransactions();
+    debug(`captured ${txns.length} transactions from run step. caching.`)
+    await putCachedStep(runtime.packageDir!, stateHash, 
+    {
+      txns,
+      output: outputs
+    });
 
     return outputs;
   },

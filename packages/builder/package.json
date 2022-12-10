@@ -3,6 +3,7 @@
   "version": "1.1.20",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/src/index.js",
+  "browser": "dist/browser.umd.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "jest",

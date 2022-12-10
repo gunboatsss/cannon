@@ -28,7 +28,7 @@ import {
   passThroughSigner,
   printChainDefinitionProblems,
 } from './util';
-import { getPackageDir, getActionFiles, getSavedPackagesDir } from './storage';
+import { getPackageDir, getActionFiles, getSavedPackagesDir, putCachedStep, getCachedStep } from './storage';
 
 const debug = Debug('cannon:builder');
 
@@ -36,6 +36,7 @@ const BUILD_VERSION = 3;
 
 import {
   CannonWrapperGenericProvider,
+  ChainArtifacts,
   clearDeploymentInfo,
   combineCtx,
   ContractMap,

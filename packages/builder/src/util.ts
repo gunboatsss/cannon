@@ -8,7 +8,7 @@ import { ChainDefinition } from '.';
 import { ChainDefinitionProblems } from './definition';
 import { ChainBuilderContext, ContractArtifact, ChainArtifacts } from './types';
 
-import { CannonWrapperGenericProvider } from './error/provider';
+import { CannonWrapperGenericProvider } from './provider';
 import { JsonFragment } from '@ethersproject/abi';
 
 export const ChainDefinitionScriptSchema = {
@@ -38,6 +38,10 @@ export function hashFs(path: string): Buffer {
   }
 
   return dirHasher.digest();
+}
+
+export function hashObj(obj: any): Buffer {
+  return crypto.createHash('md5').update(JSON.stringify(obj)).digest();
 }
 
 /**
@@ -192,7 +196,7 @@ export function getAllContractPaths(ctx: ChainArtifacts): string[] {
 
 export function printInternalOutputs(outputs: ChainArtifacts) {
   for (const c in outputs.contracts) {
-    console.log(`deployed\t${c} at ${outputs.contracts[c].address} (${outputs.contracts[c].deployTxnHash})`);
+    console.log(`deployed\t${c} at ${outputs.contracts[c].address}`);
   }
 
   for (const t in outputs.txns) {

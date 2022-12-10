@@ -32,7 +32,6 @@ export type Config = JTDDataType<typeof config>;
 export interface ContractOutputs {
   abi: string;
   address: string;
-  deployTxnHash: string;
 }
 
 // ensure the specified contract is already deployed
@@ -153,7 +152,6 @@ export default {
           address: receipt.contractAddress,
           abi,
           constructorArgs: config.args || [],
-          deployTxnHash: receipt.transactionHash,
           sourceName: artifactData.sourceName,
           contractName: artifactData.contractName,
           deployedOn: runtime.currentLabel!,

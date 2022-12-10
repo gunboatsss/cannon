@@ -33,7 +33,7 @@ import { RegistrationOptions as PublishRegistrationOptions } from './commands/pu
 import prompts from 'prompts';
 import { interact } from './interact';
 import { getContractsRecursive } from './util/contracts-recursive';
-import createRegistry from './registry';
+import { createRegistry } from './registry';
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { build } from './commands/build';
@@ -42,10 +42,12 @@ export { exportPackage } from './commands/export';
 export { importPackage } from './commands/import';
 export { inspect } from './commands/inspect';
 export { packages } from './commands/packages';
+export { plan } from './commands/plan';
 export { publish } from './commands/publish';
 export { run } from './commands/run';
 export { verify } from './commands/verify';
 export { runRpc } from './rpc';
+export { createRegistry } from './registry';
 
 const program = new Command();
 

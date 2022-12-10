@@ -12,7 +12,7 @@ import { findPackage, loadCannonfile } from '../helpers';
 import { PackageDefinition } from '../types';
 import { printChainBuilderOutput } from '../util/printer';
 import { writeModuleDeployments } from '../util/write-deployments';
-import createRegistry from '../registry';
+import { createRegistry } from '../registry';
 import { getProvider, runRpc } from '../rpc';
 import { ChainDefinition } from '@usecannon/builder';
 import fs from 'fs';

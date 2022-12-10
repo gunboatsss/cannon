@@ -5,7 +5,7 @@ import { JsonFragment } from '@ethersproject/abi';
 import _ from 'lodash';
 
 import type { RawChainDefinition } from './definition';
-import { CannonWrapperGenericProvider } from './error/provider';
+import { CannonWrapperGenericProvider } from './provider';
 
 export type OptionTypesTs = string | number | boolean;
 
@@ -30,7 +30,6 @@ export type ContractMap = {
     address: string;
     abi: JsonFragment[];
     constructorArgs?: any[]; // only needed for etherscan verification
-    deployTxnHash: string;
     contractName: string;
     sourceName: string;
     deployedOn: string;
