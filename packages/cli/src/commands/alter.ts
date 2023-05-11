@@ -98,7 +98,7 @@ export async function alter(
 
           const thisNetworkDefinition = new ChainDefinition(thisNetworkState.def);
 
-          const ctx = await createInitialContext(thisNetworkDefinition, thisNetworkState.meta, chainId, {});
+          const ctx = await createInitialContext(thisNetworkDefinition, thisNetworkState.meta, chainId, thisNetworkState.options);
 
           const name = thisNetworkDefinition.getName(ctx);
           const version = thisNetworkDefinition.getVersion(ctx);
