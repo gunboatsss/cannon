@@ -5,6 +5,6 @@ export const metadata: Metadata = {
   title: 'Cannon | Explore Packages',
   description: 'explore registered packages',
 };
-export default function Home() {
+export default function Search() {
   return <SearchPage />;
 }

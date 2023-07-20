@@ -18,7 +18,6 @@ import {
   GetTotalPackagesQueryVariables,
 } from '@/types/graphql/graphql';
 import { PackagePreview } from '@/features/Search/PackagePreview';
-import { scale } from '@chakra-ui/tooltip/dist/tooltip.transition';
 import { Search } from 'react-feather';
 
 export const SearchPage = () => {

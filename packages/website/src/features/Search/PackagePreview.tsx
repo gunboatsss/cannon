@@ -3,11 +3,13 @@ import { GetPackagesQuery } from '@/types/graphql/graphql';
 import PublishInfo from '@/features/Search/PublishInfo';
 import PackageNetworks from '@/features/Search/PackageNetworks';
 import { Box, Flex, Heading } from '@chakra-ui/react';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export const PackagePreview: FC<{ packages: GetPackagesQuery['packages'] }> = ({
   packages,
 }) => {
+  const router = useRouter();
+
   if (!packages?.length) {
     return <div>'No packages found'</div>;
   }
@@ -17,7 +19,7 @@ export const PackagePreview: FC<{ packages: GetPackagesQuery['packages'] }> = ({
       {packages.map((pkg) => (
         <Box
           key={pkg.name}
-          onClick={() => redirect(`/packages/${pkg.name}`)}
+          onClick={async () => await router.push(`/packages/${pkg.name}`)}
           p="6"
           bg="blue.975"
           display="block"
