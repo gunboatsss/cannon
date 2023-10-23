@@ -1,12 +1,11 @@
 import { IPFSLoader, OnChainRegistry, CannonStorage, copyPackage } from '@usecannon/builder';
-import { blueBright } from 'chalk';
 import { ethers } from 'ethers';
-import { LocalRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
-import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder/dist/package';
+import { LocalRegistry } from '../registry.js';
+import { resolveCliSettings } from '../settings.js';
+import { getMainLoader } from '../loader.js';
+import { PackageReference } from '@usecannon/builder/dist/package.js';
 
-import { bold, yellow } from 'chalk';
+import chalk from 'chalk';
 
 interface Params {
   packageRef: string;
@@ -41,11 +40,15 @@ export async function publish({
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      chalk.yellow(
+        chalk.bold(
+          `Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`
+        )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';
@@ -57,7 +60,7 @@ export async function publish({
   });
 
   if (!quiet) {
-    console.log(blueBright('Publishing signer is', await signer.getAddress()));
+    console.log(chalk.blueBright('Publishing signer is', await signer.getAddress()));
   }
 
   const localRegistry = new LocalRegistry(cliSettings.cannonDirectory);
@@ -65,9 +68,9 @@ export async function publish({
   if (packageRef.startsWith('@ipfs:')) {
     if (!chainId) throw new Error('chainId must be specified when publishing an IPFS reference');
 
-    console.log(blueBright('publishing remote ipfs package', packageRef));
+    console.log(chalk.blueBright('publishing remote ipfs package', packageRef));
     console.log(
-      blueBright(
+      chalk.blueBright(
         'Uploading the following Cannon package data to',
         cliSettings.publishIpfsUrl,
         'Tags',
@@ -130,7 +133,7 @@ export async function publish({
   }
 
   if (tags.length) {
-    console.log(blueBright('Package published:'));
+    console.log(chalk.blueBright('Package published:'));
     for (const tag of tags) {
       console.log(`  - ${packageRef} (${tag})`);
     }
@@ -138,7 +141,7 @@ export async function publish({
 
   const txs = registrationReceipts.filter((tx) => !!tx);
   if (txs.length) {
-    console.log('\n', blueBright('Transactions:'));
+    console.log('\n', chalk.blueBright('Transactions:'));
     for (const tx of txs) console.log(`  - ${tx}`);
   }
 }

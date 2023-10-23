@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from 'lodash-es';
 import { table } from 'table';
 
 import { ChainArtifacts } from '@usecannon/builder';

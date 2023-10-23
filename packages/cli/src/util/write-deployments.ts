@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'path';
 import { ChainArtifacts } from '@usecannon/builder';
-import { green } from 'chalk';
+import chalk from 'chalk';
 
 /**
  * Recursively writes all deployments for a chainbuilder output
@@ -12,7 +12,7 @@ export async function writeModuleDeployments(deploymentPath: string, prefix: str
     relativePath = './' + relativePath;
   }
 
-  console.log(green(`Writing ${prefix ? prefix + ' deployment' : 'deployment'} artifacts to ${relativePath}`));
+  console.log(chalk.green(`Writing ${prefix ? prefix + ' deployment' : 'deployment'} artifacts to ${relativePath}`));
 
   await fs.mkdir(deploymentPath, { recursive: true });
 

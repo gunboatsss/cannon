@@ -1,10 +1,12 @@
-import { getFoundryOpts, getFoundryArtifact, buildContracts } from './foundry';
-import * as helpers from './helpers';
+import { getFoundryOpts, getFoundryArtifact, buildContracts } from './foundry.js';
+import * as helpers from './helpers.js';
 
-import fs from 'fs-extra';
+import fs from 'fs';
+import fsp from 'fs/promises';
 
 jest.mock('./helpers');
-jest.mock('fs-extra');
+jest.mock('fs');
+jest.mock('fs/promises');
 
 describe('getFoundryOpts', () => {
   it('should return the correct options', async () => {
@@ -38,16 +40,14 @@ describe('getFoundryArtifact', () => {
         })
       );
 
-    jest.mocked(fs.readFile).mockReturnValue(
-      Promise.resolve(
-        Buffer.from(
-          JSON.stringify({
-            ast: { absolutePath: 'test.sol' },
-            abi: [],
-            bytecode: { object: '0x1234', linkReferences: {} },
-            deployedBytecode: { object: '0x1234' },
-          })
-        )
+    jest.mocked(fsp.readFile).mockResolvedValue(
+      Buffer.from(
+        JSON.stringify({
+          ast: { absolutePath: 'test.sol' },
+          abi: [],
+          bytecode: { object: '0x1234', linkReferences: {} },
+          deployedBytecode: { object: '0x1234' },
+        })
       )
     );
 

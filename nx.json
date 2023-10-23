@@ -3,6 +3,7 @@
     "default": {
       "runner": "nx-cloud",
       "options": {
+        "useDaemonProcess": false,
         "cacheableOperations": ["test", "build"],
         "accessToken": "YjEyZGFlNjItZTllMi00YWM1LTg3NDYtNjVhZjBlMmZiMjQxfHJlYWQtd3JpdGU="
       }

@@ -1,12 +1,12 @@
-import { run } from './run';
+import { run } from './run.js';
 import { ethers } from 'ethers';
 import { EventEmitter } from 'events';
-import { PackageSpecification } from '../types';
-import { RunOptions } from './run';
-import { CannonRpcNode } from '../rpc';
+import { PackageSpecification } from '../types.js';
+import { RunOptions } from './run.js';
+import { CannonRpcNode } from '../rpc.js';
 import { ChildProcess } from 'child_process';
-import * as registry from '../registry';
-import * as builderCommand from './build';
+import * as registry from '../registry.js';
+import * as builderCommand from './build.js';
 import { FallbackRegistry } from '@usecannon/builder';
 
 const chainId = 1337; // Assuming you're using default chainId for local Ethereum network

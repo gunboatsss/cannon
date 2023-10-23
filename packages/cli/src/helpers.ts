@@ -2,15 +2,17 @@ import os from 'node:os';
 import { exec, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import _ from 'lodash';
-import fs from 'fs-extra';
+import fs from 'fs';
+import fsp from 'fs/promises';
+import fse from 'fs-extra/esm';
 import prompts from 'prompts';
-import { magentaBright, yellowBright, yellow, bold } from 'chalk';
+import chalk from 'chalk';
 import toml from '@iarna/toml';
 import { CANNON_CHAIN_ID, ChainDefinition, RawChainDefinition, ChainBuilderContext } from '@usecannon/builder';
-import { chains } from './chains';
-import { IChainData } from './types';
-import { resolveCliSettings } from './settings';
-import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { chains } from './chains.js';
+import { IChainData } from './types.js';
+import { resolveCliSettings } from './settings.js';
+import { isConnectedToInternet } from './util/is-connected-to-internet.js';
 import Debug from 'debug';
 const debug = Debug('cannon:cli:helpers');
 
@@ -30,7 +32,7 @@ export async function setupAnvil(): Promise<void> {
       });
 
       if (anvilResponse.confirmation) {
-        console.log(magentaBright('Upgrading Foundry to the latest version...'));
+        console.log(chalk.magentaBright('Upgrading Foundry to the latest version...'));
         await execPromise('foundryup');
       } else {
         process.exit();
@@ -45,7 +47,7 @@ export async function setupAnvil(): Promise<void> {
     });
 
     if (response.confirmation) {
-      console.log(magentaBright('Installing Foundry...'));
+      console.log(chalk.magentaBright('Installing Foundry...'));
       await execPromise('curl -L https://foundry.paradigm.xyz | bash');
       await execPromise(os.homedir() + '/.foundry/bin/foundryup');
     } else {
@@ -56,7 +58,7 @@ export async function setupAnvil(): Promise<void> {
 
 async function getAnvilVersionDate(): Promise<Date | false> {
   try {
-    const child = await spawnSync('anvil', ['--version']);
+    const child = spawnSync('anvil', ['--version']);
     const output = child.stdout.toString();
     const timestamp = output.substring(output.indexOf('(') + 1, output.lastIndexOf(')')).split(' ')[1];
     return new Date(timestamp);
@@ -100,8 +102,8 @@ export async function resolveCannonVersion(): Promise<string> {
 
   const resolvedVersion = await execPromise('npm view @usecannon/cli version');
 
-  await fs.mkdirp(settings.cannonDirectory || 'undefined');
-  await fs.writeFile(versionFile, `${resolvedVersion}:${now}`);
+  await fse.mkdirp(settings.cannonDirectory || 'undefined');
+  await fsp.writeFile(versionFile, `${resolvedVersion}:${now}`);
 
   return resolvedVersion;
 }
@@ -109,8 +111,8 @@ export async function resolveCannonVersion(): Promise<string> {
 export async function checkCannonVersion(currentVersion: string): Promise<void> {
   const latestVersion = await resolveCannonVersion();
   if (latestVersion && currentVersion !== latestVersion) {
-    console.warn(yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
-    console.warn(yellow('Upgrade with ' + bold('npm install -g @usecannon/cli\n')));
+    console.warn(chalk.yellowBright(`⚠️  There is a new version of Cannon (${latestVersion})`));
+    console.warn(chalk.yellow('Upgrade with ' + chalk.bold('npm install -g @usecannon/cli\n')));
   }
 }
 
@@ -130,7 +132,8 @@ export async function loadCannonfile(filepath: string) {
     // credit where its due this is pretty slick
     // https://stackoverflow.com/a/56012724
     // read all data from stdin
-    buf = await fs.readFile(0);
+    // NOTE: for some reason types are wrong here and have to cast 0 to any
+    buf = await fsp.readFile(0 as any);
 
     rawDef = JSON.parse(buf.toString('utf8'));
   } else {
@@ -168,7 +171,7 @@ async function loadChainDefinitionToml(filepath: string, trace: string[]): Promi
     );
   }
 
-  const buf = await fs.readFile(filepath);
+  const buf = await fsp.readFile(filepath);
 
   let rawDef: Partial<RawChainDefinition> & { include?: string[] };
   try {
@@ -254,13 +257,13 @@ function getMetadataPath(packageName: string): string {
 export async function saveToMetadataCache(packageName: string, key: string, value: string) {
   const metadataCache = await readMetadataCache(packageName);
   metadataCache[key] = value;
-  await fs.mkdirp(path.dirname(getMetadataPath(packageName)));
-  await fs.writeJson(getMetadataPath(packageName), metadataCache);
+  await fse.mkdirp(path.dirname(getMetadataPath(packageName)));
+  await fse.writeJson(getMetadataPath(packageName), metadataCache);
 }
 
 export async function readMetadataCache(packageName: string): Promise<{ [key: string]: string }> {
   try {
-    return await fs.readJson(getMetadataPath(packageName));
+    return await fse.readJson(getMetadataPath(packageName));
   } catch {
     return {};
   }

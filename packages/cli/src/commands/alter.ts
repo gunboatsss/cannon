@@ -1,9 +1,9 @@
-import _ from 'lodash';
+import _ from 'lodash-es';
 import Debug from 'debug';
 
-import { bold, yellow } from 'chalk';
+import chalk from 'chalk';
 
-import { createDefaultReadRegistry } from '../registry';
+import { createDefaultReadRegistry } from '../registry.js';
 import {
   createInitialContext,
   ChainDefinition,
@@ -12,10 +12,10 @@ import {
   CANNON_CHAIN_ID,
   DeploymentInfo,
 } from '@usecannon/builder';
-import { resolveCliSettings } from '../settings';
-import { getProvider, runRpc } from '../rpc';
-import { getMainLoader } from '../loader';
-import { PackageReference } from '@usecannon/builder/dist/package';
+import { resolveCliSettings } from '../settings.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { getMainLoader } from '../loader.js';
+import { PackageReference } from '@usecannon/builder/dist/package.js';
 
 const debug = Debug('cannon:cli:alter');
 
@@ -32,13 +32,15 @@ export async function alter(
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(
+      chalk.yellow(
+        chalk.bold(
           `Duplicate preset definitions in package reference "${basePackageRef}" and in --preset argument: "${presetArg}"`
         )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';

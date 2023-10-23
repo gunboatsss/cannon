@@ -1,13 +1,13 @@
 import { CannonWrapperGenericProvider, copyPackage, DeploymentInfo, IPFSLoader, OnChainRegistry } from '@usecannon/builder';
 import * as builder from '@usecannon/builder';
-import { LocalLoader } from '../loader';
-import { publish } from '../commands/publish';
+import { LocalLoader } from '../loader.js';
+import { publish } from '../commands/publish.js';
 import { ethers } from 'ethers';
-import fs from 'fs-extra';
 import path from 'path';
-import { resolveCliSettings } from '../settings';
-import * as settings from '../settings';
-import _ from 'lodash';
+import fs from 'fs/promises';
+import { resolveCliSettings } from '../settings.js';
+import * as settings from '../settings.js';
+import _ from 'lodash-es';
 
 describe('publish command', () => {
   let tags = ['tag0', 'tag1'];

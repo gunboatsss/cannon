@@ -1,5 +1,5 @@
 import { CannonStorage, DeploymentInfo } from '@usecannon/builder';
-import { readDeploy, readDeployRecursive } from './package'; // assuming the module's name is "module.ts"
+import { readDeploy, readDeployRecursive } from './package'; // assuming the module.js's name is "module.ts"
 
 jest.mock('@usecannon/builder');
 jest.mock('fastq');

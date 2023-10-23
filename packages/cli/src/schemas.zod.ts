@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 /// ================================ INPUT CONFIG SCHEMAS ================================ \\\
 

@@ -1,15 +1,15 @@
 import { ChainDefinition, getOutputs, ChainBuilderRuntime, DeploymentInfo } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import axios from 'axios';
-import { getChainDataFromId } from '../helpers';
-import { createDefaultReadRegistry } from '../registry';
-import { getProvider, runRpc } from '../rpc';
-import { resolveCliSettings } from '../settings';
+import { getChainDataFromId } from '../helpers.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { getProvider, runRpc } from '../rpc.js';
+import { resolveCliSettings } from '../settings.js';
 import Debug from 'debug';
-import { forPackageTree, PackageReference } from '@usecannon/builder/dist/package';
-import { getMainLoader } from '../loader';
+import { forPackageTree, PackageReference } from '@usecannon/builder/dist/package.js';
+import { getMainLoader } from '../loader.js';
 
-import { bold, yellow } from 'chalk';
+import chalk from 'chalk';
 
 const debug = Debug('cannon:cli:verify');
 
@@ -18,11 +18,15 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      chalk.yellow(
+        chalk.bold(
+          `Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`
+        )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';

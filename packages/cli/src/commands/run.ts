@@ -1,5 +1,5 @@
-import _ from 'lodash';
-import { greenBright, green, bold, gray, yellow } from 'chalk';
+import _ from 'lodash-es';
+import chalk from 'chalk';
 import { ethers } from 'ethers';
 import {
   CANNON_CHAIN_ID,
@@ -10,16 +10,16 @@ import {
   getOutputs,
   renderTrace,
 } from '@usecannon/builder';
-import { PackageSpecification } from '../types';
-import { CannonRpcNode, getProvider } from '../rpc';
-import { interact } from './interact';
-import onKeypress from '../util/on-keypress';
-import { build } from './build';
-import { getContractsRecursive } from '../util/contracts-recursive';
-import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
-import { setupAnvil } from '../helpers';
-import { getMainLoader } from '../loader';
+import { PackageSpecification } from '../types.js';
+import { CannonRpcNode, getProvider } from '../rpc.js';
+import { interact } from './interact.js';
+import onKeypress from '../util/on-keypress.js';
+import { build } from './build.js';
+import { getContractsRecursive } from '../util/contracts-recursive.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { resolveCliSettings } from '../settings.js';
+import { setupAnvil } from '../helpers.js';
+import { getMainLoader } from '../loader.js';
 
 export interface RunOptions {
   node: CannonRpcNode;
@@ -37,11 +37,11 @@ export interface RunOptions {
   build?: boolean;
 }
 
-const INITIAL_INSTRUCTIONS = green(`Press ${bold('h')} to see help information for this command.`);
-const INSTRUCTIONS = green(
-  `\nPress ${bold('a')} to toggle displaying the logs from your local node.\nPress ${bold(
+const INITIAL_INSTRUCTIONS = chalk.green(`Press ${chalk.bold('h')} to see help information for this command.`);
+const INSTRUCTIONS = chalk.green(
+  `\nPress ${chalk.bold('a')} to toggle displaying the logs from your local node.\nPress ${chalk.bold(
     'i'
-  )} to interact with contracts via the command line.\nPress ${bold(
+  )} to interact with contracts via the command line.\nPress ${chalk.bold(
     'v'
   )} to toggle display verbosity of transaction traces as they run.`
 );
@@ -49,7 +49,7 @@ const INSTRUCTIONS = green(
 export async function run(packages: PackageSpecification[], options: RunOptions) {
   await setupAnvil();
 
-  console.log(bold('Starting local node...\n'));
+  console.log(chalk.bold('Starting local node...\n'));
 
   // Start the rpc server
   const node = options.node;
@@ -100,13 +100,15 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
 
     if (options.preset && preset) {
       console.warn(
-        yellow(
-          bold(
+        chalk.yellow(
+          chalk.bold(
             `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${options.preset}"`
           )
         )
       );
-      console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+      console.warn(
+        chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+      );
     }
 
     const selectedPreset = preset || options.preset || 'main';
@@ -145,19 +147,21 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     }
 
     console.log(
-      greenBright(
-        `${bold(`${name}:${version}`)} has been deployed to a local node running at ${bold('localhost:' + node.port)}`
+      chalk.greenBright(
+        `${chalk.bold(`${name}:${version}`)} has been deployed to a local node running at ${chalk.bold(
+          'localhost:' + node.port
+        )}`
       )
     );
 
     if (node.forkProvider) {
-      console.log(gray('Running from fork provider'));
+      console.log(chalk.gray('Running from fork provider'));
     }
   }
 
   if (!signers.length) {
     console.warn(
-      yellow(
+      chalk.yellow(
         '\nWARNING: no signers resolved. Specify signers with --mnemonic or --private-key (or use --impersonate if on a fork).'
       )
     );
@@ -227,11 +231,11 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
     } else if (evt.name === 'a') {
       // Toggle showAnvilLogs when the user presses "a"
       if (nodeLogging.enabled()) {
-        console.log(gray('Paused anvil logs...'));
+        console.log(chalk.gray('Paused anvil logs...'));
         console.log(INSTRUCTIONS);
         nodeLogging.disable();
       } else {
-        console.log(gray('Unpaused anvil logs...'));
+        console.log(chalk.gray('Unpaused anvil logs...'));
         nodeLogging.enable();
       }
     } else if (evt.name === 'i') {
@@ -257,13 +261,13 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
       // Toggle showAnvilLogs when the user presses "a"
       if (traceLevel === 0) {
         traceLevel = 1;
-        console.log(gray('Enabled display of console.log events from transactions...'));
+        console.log(chalk.gray('Enabled display of console.log events from transactions...'));
       } else if (traceLevel === 1) {
         traceLevel = 2;
-        console.log(gray('Enabled display of full transaction logs...'));
+        console.log(chalk.gray('Enabled display of full transaction logs...'));
       } else {
         traceLevel = 0;
-        console.log(gray('Disabled transaction tracing...'));
+        console.log(chalk.gray('Disabled transaction tracing...'));
       }
     } else if (evt.name === 'h') {
       if (nodeLogging.enabled()) return;
@@ -283,7 +287,7 @@ async function createLoggingInterface(node: CannonRpcNode) {
     const newData = chunk
       .split('\n')
       .map((m: string) => {
-        return gray('anvil: ') + m;
+        return chalk.gray('anvil: ') + m;
       })
       .join('\n');
 

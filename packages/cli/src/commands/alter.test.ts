@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
-import { alter } from './alter';
-import { createDefaultReadRegistry } from '../registry';
+import { alter } from './alter.js';
+import { createDefaultReadRegistry } from '../registry.js';
 import { CannonStorage, ChainDefinition, DeploymentInfo, FallbackRegistry, IPFSLoader } from '@usecannon/builder';
-import { getMainLoader, LocalLoader } from '../loader';
-import _ from 'lodash';
-import cli from '../index';
+import { getMainLoader, LocalLoader } from '../loader.js';
+import _ from 'lodash-es';
+import cli from '../index.js';
 
 function generatePrivateKey(): string {
   const randomWallet = ethers.Wallet.createRandom();

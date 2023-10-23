@@ -1,11 +1,13 @@
-import fs from 'fs-extra';
+import fse from 'fs-extra/esm';
+import fs from 'fs/promises';
 import crypto from 'crypto';
 import path from 'path';
-import { LocalLoader, getMainLoader } from './loader'; // assuming the module's name is "module.ts"
-import { CliSettings } from './settings';
+import { LocalLoader, getMainLoader } from './loader'; // assuming the module.js's name is "module.ts"
+import { CliSettings } from './settings.js';
 import { IPFSLoader } from '@usecannon/builder';
 
-jest.mock('fs-extra');
+jest.mock('fs-extra/esm.mjs');
+jest.mock('fs/promises');
 jest.mock('crypto');
 
 describe('LocalLoader', LocalLoaderTestCases);
@@ -27,9 +29,9 @@ function LocalLoaderTestCases() {
   it('read should return JSON from the path', async () => {
     const url = 'file://test.json';
     const json = { test: 'test' };
-    (fs.readJson as jest.Mock).mockResolvedValueOnce(json);
+    (fse.readJson as jest.Mock).mockResolvedValueOnce(json);
     const result = await loader.read(url);
-    expect(fs.readJson).toHaveBeenCalledWith(path.join(dir, 'test.json'));
+    expect(fse.readJson).toHaveBeenCalledWith(path.join(dir, 'test.json'));
     expect(result).toEqual(json);
   });
 
@@ -42,7 +44,7 @@ function LocalLoaderTestCases() {
       digest: jest.fn().mockReturnValueOnce(hash),
     });
     const result = await loader.put(misc);
-    expect(fs.mkdirp).toHaveBeenCalledWith(dir);
+    expect(fse.mkdirp).toHaveBeenCalledWith(dir);
     expect(fs.writeFile).toHaveBeenCalledWith(path.join(dir, `${hash}.json`), json);
     expect(result).toEqual(`file://${hash}.json`);
   });

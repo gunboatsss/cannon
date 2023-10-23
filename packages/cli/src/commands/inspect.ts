@@ -1,11 +1,11 @@
 import { ContractData, ChainArtifacts, ChainDefinition, DeploymentState } from '@usecannon/builder';
-import { bold, cyan, green, yellow } from 'chalk';
-import { PackageReference } from '@usecannon/builder/dist/package';
-import { createDefaultReadRegistry } from '../registry';
-import { resolveCliSettings } from '../settings';
-import fs from 'fs-extra';
+import chalk from 'chalk';
+import { PackageReference } from '@usecannon/builder/dist/package.js';
+import { createDefaultReadRegistry } from '../registry.js';
+import { resolveCliSettings } from '../settings.js';
+import fse from 'fs-extra/esm';
 import path from 'path';
-import { getMainLoader } from '../loader';
+import { getMainLoader } from '../loader.js';
 
 export async function inspect(
   packageRef: string,
@@ -18,11 +18,15 @@ export async function inspect(
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      chalk.yellow(
+        chalk.bold(
+          `Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`
+        )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';
@@ -41,7 +45,7 @@ export async function inspect(
 
   if (!chainId) {
     console.warn(
-      yellow(
+      chalk.yellow(
         "The deployment data for the latest local version of this package (which runs with 'cannon PACKAGE_NAME') was exported. \
       Specify the --chain-id parameter to retrieve the addresses/ABIs for other deployments."
       )
@@ -62,7 +66,7 @@ export async function inspect(
 
     await Promise.all(
       files.map(([filepath, contractData]) => {
-        return fs.outputFile(filepath, JSON.stringify(contractData, null, 2));
+        return fse.outputFile(filepath, JSON.stringify(contractData, null, 2));
       })
     );
   }
@@ -79,11 +83,13 @@ export async function inspect(
   } else {
     const metaUrl = await resolver.getMetaUrl(`${name}:${version}`, `${chainId}-${selectedPreset}`);
 
-    console.log(green(bold(`\n=============== ${name}:${version} ===============`)));
+    console.log(chalk.green(chalk.bold(`\n=============== ${name}:${version} ===============`)));
     console.log();
     console.log(
       '   Deploy Status:',
-      deployData.status === 'partial' ? yellow(bold(deployData.status)) : green(deployData.status || 'complete')
+      deployData.status === 'partial'
+        ? chalk.yellow(chalk.bold(deployData.status))
+        : chalk.green(deployData.status || 'complete')
     );
     console.log(
       '         Options:',
@@ -95,8 +101,8 @@ export async function inspect(
     console.log('        Misc URL:', deployData.miscUrl);
     console.log('Package Info URL:', metaUrl);
     console.log();
-    console.log(cyan(bold('Cannonfile Topology')));
-    console.log(cyan(chainDefinition.printTopology().join('\n')));
+    console.log(chalk.cyan(chalk.bold('Cannonfile Topology')));
+    console.log(chalk.cyan(chainDefinition.printTopology().join('\n')));
   }
 
   return deployData;

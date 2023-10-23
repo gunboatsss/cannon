@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from 'lodash-es';
 
 import { ethers, ethers as Ethers } from 'ethers';
 
@@ -8,7 +8,7 @@ const { red, bold, gray, green, yellow, cyan } = chalk;
 
 import prompts, { Choice } from 'prompts';
 import Wei, { wei } from '@synthetixio/wei';
-import { PackageSpecification } from '../types';
+import { PackageSpecification } from '../types.js';
 import { CannonWrapperGenericProvider, ChainArtifacts } from '@usecannon/builder';
 
 const PROMPT_BACK_OPTION = { title: '↩ BACK' };

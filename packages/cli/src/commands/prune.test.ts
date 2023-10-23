@@ -1,6 +1,6 @@
-import { prune } from './prune';
+import { prune } from './prune.js';
 import { CannonStorage } from '@usecannon/builder';
-import { LocalLoader } from '../loader';
+import { LocalLoader } from '../loader.js';
 
 jest.mock('../registry');
 jest.mock('../settings');

@@ -1,8 +1,8 @@
-import { inspect } from './inspect';
-import { createDefaultReadRegistry } from '../registry';
+import { inspect } from './inspect.js';
+import { createDefaultReadRegistry } from '../registry.js';
 import { IPFSLoader } from '@usecannon/builder';
-import fs from 'fs-extra';
-import { getMainLoader, LocalLoader } from '../loader';
+import fs from 'fs-extra/esm';
+import { getMainLoader, LocalLoader } from '../loader.js';
 
 jest.mock('../registry');
 jest.mock('../settings');

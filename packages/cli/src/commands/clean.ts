@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import Debug from 'debug';
 import prompts from 'prompts';
-import { resolveCliSettings } from '../settings';
+import { resolveCliSettings } from '../settings.js';
 
 const debug = Debug('cannon:cli:clean');
 

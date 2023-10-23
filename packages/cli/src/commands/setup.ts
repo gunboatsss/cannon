@@ -1,5 +1,6 @@
-import { setupAnvil } from '../helpers';
-import fs from 'fs-extra';
+import { setupAnvil } from '../helpers.js';
+import fs from 'fs';
+import fse from 'fs-extra/esm';
 import path from 'path';
 import untildify from 'untildify';
 import prompts from 'prompts';
@@ -8,9 +9,9 @@ import {
   CLI_SETTINGS_STORE,
   DEFAULT_REGISTRY_PROVIDER_URL,
   DEFAULT_REGISTRY_ADDRESS,
-} from '../constants';
-import _ from 'lodash';
-import { bold, italic, yellow } from 'chalk';
+} from '../constants.js';
+import _ from 'lodash-es';
+import chalk from 'chalk';
 
 export async function setup() {
   // Setup Anvil
@@ -33,7 +34,7 @@ export async function setup() {
   );
 
   const configExists = fs.existsSync(cliSettingsStore);
-  let fileSettings = configExists ? fs.readJsonSync(cliSettingsStore) : {};
+  let fileSettings = configExists ? fse.readJsonSync(cliSettingsStore) : {};
 
   if (configExists) {
     console.log(`\nThis will update your configuration at ${cliSettingsStore} with current value:`);
@@ -74,8 +75,8 @@ export async function setup() {
 
   const response = await prompts(questions, {
     onCancel: () => {
-      console.log(bold('Aborting...'));
-      console.log(yellow(italic('No changes were made to your configuration.')));
+      console.log(chalk.bold('Aborting...'));
+      console.log(chalk.yellow(chalk.italic('No changes were made to your configuration.')));
       process.exit(0);
     },
   });
@@ -100,7 +101,7 @@ export async function setup() {
 
   console.log(`Writing configuration to ${cliSettingsStore}...`);
   fileSettings = _.omitBy(fileSettings, _.isEmpty);
-  await fs.mkdirp(path.dirname(cliSettingsStore));
+  await fse.mkdirp(path.dirname(cliSettingsStore));
   fs.writeFileSync(cliSettingsStore, JSON.stringify(fileSettings), 'utf8');
   console.log('Done!');
 }

@@ -1,10 +1,11 @@
 import { CannonLoader, IPFSLoader } from '@usecannon/builder';
 
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
+import fse from 'fs-extra/esm';
 import crypto from 'crypto';
-import { CliSettings } from './settings';
-import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants';
+import { CliSettings } from './settings.js';
+import { DEFAULT_REGISTRY_IPFS_ENDPOINT } from './constants.js';
 import debug from 'debug';
 
 export class LocalLoader implements CannonLoader {
@@ -23,14 +24,14 @@ export class LocalLoader implements CannonLoader {
       throw new Error('incorrect url type');
     }
 
-    return fs.readJson(path.join(this.dir, `${url.slice(7)}`));
+    return fse.readJson(path.join(this.dir, `${url.slice(7)}`));
   }
 
   async put(misc: any): Promise<string | null> {
     const dataToSave = JSON.stringify(misc);
     const hash = crypto.createHash('md5').update(dataToSave).digest('hex');
 
-    await fs.mkdirp(this.dir);
+    await fse.mkdirp(this.dir);
     await fs.writeFile(path.join(this.dir, `${hash}.json`), dataToSave);
 
     return `file://${hash}.json`;

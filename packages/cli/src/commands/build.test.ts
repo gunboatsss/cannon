@@ -1,7 +1,7 @@
-import * as paramUtils from '../util/params';
+import * as paramUtils from '../util/params.js';
 
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { CannonRpcNode } from '../rpc';
+import { CannonRpcNode } from '../rpc.js';
 
 jest.mock('ethers');
 jest.mock('@usecannon/builder');

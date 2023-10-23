@@ -4,9 +4,9 @@ import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
 import { ethers } from 'ethers';
 import Debug from 'debug';
-import _ from 'lodash';
-import { execPromise, toArgs } from './helpers';
-import { AnvilOptions } from './util/anvil';
+import _ from 'lodash-es';
+import { execPromise, toArgs } from './helpers.js';
+import { AnvilOptions } from './util/anvil.js';
 
 const debug = Debug('cannon:cli:rpc');
 

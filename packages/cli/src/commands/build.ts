@@ -1,6 +1,6 @@
-import _ from 'lodash';
+import _ from 'lodash-es';
 import ethers from 'ethers';
-import { bold, greenBright, yellow, gray, cyan, yellowBright } from 'chalk';
+import chalk from 'chalk';
 import {
   CANNON_CHAIN_ID,
   ChainDefinition,
@@ -13,17 +13,17 @@ import {
   DeploymentInfo,
   CannonWrapperGenericProvider,
 } from '@usecannon/builder';
-import { readMetadataCache } from '../helpers';
-import { PackageSpecification } from '../types';
-import { printChainBuilderOutput } from '../util/printer';
+import { readMetadataCache } from '../helpers.js';
+import { PackageSpecification } from '../types.js';
+import { printChainBuilderOutput } from '../util/printer.js';
 import { CannonRegistry } from '@usecannon/builder';
-import { resolveCliSettings } from '../settings';
-import { createDefaultReadRegistry } from '../registry';
+import { resolveCliSettings } from '../settings.js';
+import { createDefaultReadRegistry } from '../registry.js';
 
-import { listInstalledPlugins, loadPlugins } from '../plugins';
-import { getMainLoader } from '../loader';
+import { listInstalledPlugins, loadPlugins } from '../plugins.js';
+import { getMainLoader } from '../loader.js';
 
-import pkg from '../../package.json';
+import pkg from '../../package.json' assert { type: 'json' };
 
 interface Params {
   provider: CannonWrapperGenericProvider;
@@ -77,7 +77,9 @@ export async function build({
 
   if (!persist && providerUrl) {
     console.log(
-      yellowBright(bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n'))
+      chalk.yellowBright(
+        chalk.bold('⚠️  This is a simulation. No changes will be made to the chain. No package data will be saved.\n')
+      )
     );
   }
 
@@ -85,13 +87,15 @@ export async function build({
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(
+      chalk.yellow(
+        chalk.bold(
           `Duplicate preset definitions in package reference "${name}:${version}@${preset}" and in --preset argument: "${presetArg}"`
         )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';
@@ -194,25 +198,25 @@ export async function build({
   }
 
   if (oldDeployData && wipe) {
-    console.log(bold('Regenerating package...'));
+    console.log(chalk.bold('Regenerating package...'));
   } else if (oldDeployData && !upgradeFrom) {
-    console.log(bold('Using package...'));
+    console.log(chalk.bold('Using package...'));
   } else {
-    console.log(bold('Generating new package...'));
+    console.log(chalk.bold('Generating new package...'));
   }
-  console.log('Name: ' + cyan(`${pkgName}`));
-  console.log('Version: ' + cyan(`${pkgVersion}`));
-  console.log('Preset: ' + cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? gray(' (default)') : ''));
+  console.log('Name: ' + chalk.cyan(`${pkgName}`));
+  console.log('Version: ' + chalk.cyan(`${pkgVersion}`));
+  console.log('Preset: ' + chalk.cyan(`${selectedPreset}`) + (selectedPreset == 'main' ? chalk.gray(' (default)') : ''));
   if (upgradeFrom) {
-    console.log(`Upgrading from: ${cyan(upgradeFrom)}`);
+    console.log(`Upgrading from: ${chalk.cyan(upgradeFrom)}`);
   }
   if (publicSourceCode) {
-    console.log(gray('Source code will be included in the package'));
+    console.log(chalk.gray('Source code will be included in the package'));
   }
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
+  console.log(chalk.bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
@@ -293,33 +297,41 @@ export async function build({
 
     if (partialDeploy) {
       console.log(
-        yellow(
-          bold(
+        chalk.yellow(
+          chalk.bold(
             'WARNING: your deployment was not fully completed. Please inspect the issues listed above, and resolve as necessary.'
           )
         )
       );
 
       console.log(
-        yellow('Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.')
+        chalk.yellow(
+          'Rerunning the same build command will attempt to execute skipped steps. It will not re-run executed steps.'
+        )
       );
 
       console.log(
-        yellow('To re-run executed steps, add the --wipe flag to the build command: ' + bold('cannon build --wipe'))
+        chalk.yellow(
+          'To re-run executed steps, add the --wipe flag to the build command: ' + chalk.bold('cannon build --wipe')
+        )
       );
 
       console.log(
-        yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
+        chalk.yellow(`This package is not published. Your partial deployment can be accessed from the URL: ${deployUrl}`)
       );
 
-      console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
+      console.log(
+        chalk.yellow('Run ' + chalk.bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.')
+      );
     } else {
-      console.log(greenBright(`Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`));
+      console.log(
+        chalk.greenBright(`Successfully built package ${chalk.bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`)
+      );
     }
   } else {
     console.log(
-      bold(
-        yellow(
+      chalk.bold(
+        chalk.yellow(
           `Chain state could not be saved via ${runtime.loaders[runtime.defaultLoaderScheme].getLabel()}
 Try a writable endpoint by setting ipfsUrl through \`npx @usecannon/cli setup\` or CANNON_IPFS_URL env var.`
         )

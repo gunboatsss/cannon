@@ -11,55 +11,55 @@ import {
   CannonStorage,
 } from '@usecannon/builder';
 
-import { checkCannonVersion, loadCannonfile } from './helpers';
-import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params';
+import { checkCannonVersion, loadCannonfile } from './helpers.js';
+import { parsePackageArguments, parsePackagesArguments, parseSettings } from './util/params.js';
 
-import pkg from '../package.json';
-import { PackageSpecification } from './types';
-import { CannonRpcNode, getProvider, runRpc } from './rpc';
+import pkg from '../package.json' assert { type: 'json' };
+import { PackageSpecification } from './types.js';
+import { CannonRpcNode, getProvider, runRpc } from './rpc.js';
 
-import './custom-steps/run';
+import './custom-steps/run.js';
 
-export * from './types';
-export * from './constants';
-export * from './util/params';
+export * from './types.js';
+export * from './constants.js';
+export * from './util/params.js';
 
-import { interact } from './commands/interact';
-import { getContractsRecursive } from './util/contracts-recursive';
-import { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-import { resolveCliSettings } from './settings';
+import { interact } from './commands/interact.js';
+import { getContractsRecursive } from './util/contracts-recursive.js';
+import { createDefaultReadRegistry, createDryRunRegistry } from './registry.js';
+import { resolveCliSettings } from './settings.js';
 
-import { installPlugin, removePlugin } from './plugins';
+import { installPlugin, removePlugin } from './plugins.js';
 import Debug from 'debug';
-import { writeModuleDeployments } from './util/write-deployments';
-import { getFoundryArtifact } from './foundry';
-import { resolveRegistryProvider, resolveWriteProvider } from './util/provider';
-import { getMainLoader } from './loader';
-import { bold, green, red, yellow } from 'chalk';
+import { writeModuleDeployments } from './util/write-deployments.js';
+import { getFoundryArtifact } from './foundry.js';
+import { resolveRegistryProvider, resolveWriteProvider } from './util/provider.js';
+import { getMainLoader } from './loader.js';
+import chalk from 'chalk';
 
 const debug = Debug('cannon:cli');
 
 // Can we avoid doing these exports here so only the necessary files are loaded when running a command?
 export { ChainDefinition, DeploymentInfo } from '@usecannon/builder';
-export { alter } from './commands/alter';
-export { build } from './commands/build';
-export { clean } from './commands/clean';
-export { inspect } from './commands/inspect';
-export { publish } from './commands/publish';
-export { run } from './commands/run';
-export { verify } from './commands/verify';
-export { setup } from './commands/setup';
-export { runRpc, getProvider } from './rpc';
+export { alter } from './commands/alter.js';
+export { build } from './commands/build.js';
+export { clean } from './commands/clean.js';
+export { inspect } from './commands/inspect.js';
+export { publish } from './commands/publish.js';
+export { run } from './commands/run.js';
+export { verify } from './commands/verify.js';
+export { setup } from './commands/setup.js';
+export { runRpc, getProvider } from './rpc.js';
 
-export { createDefaultReadRegistry, createDryRunRegistry } from './registry';
-export { resolveProviderAndSigners } from './util/provider';
-export { resolveCliSettings } from './settings';
-export { getFoundryArtifact } from './foundry';
-export { loadCannonfile } from './helpers';
+export { createDefaultReadRegistry, createDryRunRegistry } from './registry.js';
+export { resolveProviderAndSigners } from './util/provider.js';
+export { resolveCliSettings } from './settings.js';
+export { getFoundryArtifact } from './foundry.js';
+export { loadCannonfile } from './helpers.js';
 
-import { listInstalledPlugins } from './plugins';
+import { listInstalledPlugins } from './plugins.js';
 import prompts from 'prompts';
-import { addAnvilOptions, pickAnvilOptions } from './util/anvil';
+import { addAnvilOptions, pickAnvilOptions } from './util/anvil.js';
 
 const program = new Command();
 
@@ -286,22 +286,22 @@ addAnvilOptions(program.command('build'))
     const cannonfilePath = path.resolve(cannonfile);
     const projectDirectory = path.dirname(cannonfilePath);
 
-    console.log(bold('Building the foundry project using forge build...'));
+    console.log(chalk.bold('Building the foundry project using forge build...'));
     if (!opts.skipCompile) {
       const forgeBuildProcess = spawn('forge', ['build'], { cwd: projectDirectory });
       await new Promise((resolve) => {
         forgeBuildProcess.on('exit', (code) => {
           if (code === 0) {
-            console.log(green('forge build succeeded'));
+            console.log(chalk.green('forge build succeeded'));
           } else {
-            console.log(red('forge build failed'));
+            console.log(chalk.red('forge build failed'));
             console.log('Continuing with cannon build...');
           }
           resolve(null);
         });
       });
     } else {
-      console.log(yellow('Skipping forge build...'));
+      console.log(chalk.yellow('Skipping forge build...'));
     }
 
     const [node] = await doBuild(cannonfile, settings, opts);
@@ -458,7 +458,7 @@ program
     );
 
     if (pruneUrls.length) {
-      console.log(bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
+      console.log(chalk.bold(`Found ${pruneUrls.length} storage artifacts to prune.`));
       console.log(`Matched with Registry: ${pruneStats.matchedFromRegistry}`);
       console.log(`Not Expired: ${pruneStats.notExpired}`);
       console.log(`Not Cannon Package: ${pruneStats.notCannonPackage}`);
@@ -492,7 +492,7 @@ program
 
       console.log('Done!');
     } else {
-      console.log(bold('Nothing to prune.'));
+      console.log(chalk.bold('Nothing to prune.'));
     }
   });
 
@@ -671,6 +671,33 @@ program
   });
 
 program
+  .command('daemon')
+  .description('Run lightweight, purpose-built IPFS client for resolving cannon artifacts')
+  .action((): Promise<void> => {
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve) => {
+      const { daemon } = await import('./commands/daemon.js');
+      const daemonInfo = await daemon();
+
+      async function closeServer() {
+        console.log('closing down');
+        await daemonInfo.ipfs.stop();
+        daemonInfo.socket.close();
+
+        process.exit(0);
+      }
+
+      process.on('SIGTERM', closeServer);
+      process.on('SIGINT', closeServer);
+
+      daemonInfo.socket.on('close', () => {
+        console.log('daemon finished');
+        resolve();
+      });
+    });
+  });
+
+program
   .command('clean')
   .description('Delete packages cache directories')
   .option('--no-confirm', 'Do not ask for confirmation before deleting')
@@ -686,9 +713,9 @@ pluginCmd
   .command('list')
   .description('List all installed Cannon plug-ins')
   .action(async function () {
-    console.log(green(bold('\n=============== Installed Plug-ins ===============')));
+    console.log(chalk.green(chalk.bold('\n=============== Installed Plug-ins ===============')));
     const installedPlugins = await listInstalledPlugins();
-    installedPlugins.forEach((plugin) => console.log(yellow(plugin)));
+    installedPlugins.forEach((plugin) => console.log(chalk.yellow(plugin)));
   });
 
 pluginCmd

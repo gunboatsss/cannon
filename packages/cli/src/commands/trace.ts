@@ -1,11 +1,11 @@
-import _ from 'lodash';
+import _ from 'lodash-es';
 import { ethers } from 'ethers';
-import { gray, yellow, green, red, bold } from 'chalk';
-import { readDeployRecursive } from '../package';
-import { resolveWriteProvider } from '../util/provider';
-import { resolveCliSettings } from '../settings';
+import chalk from 'chalk';
+import { readDeployRecursive } from '../package.js';
+import { resolveWriteProvider } from '../util/provider.js';
+import { resolveCliSettings } from '../settings.js';
 
-import { runRpc, getProvider } from '../rpc';
+import { runRpc, getProvider } from '../rpc.js';
 import { getArtifacts, renderTrace, findContract, ChainDefinition, ChainArtifacts, TraceEntry } from '@usecannon/builder';
 
 import Debug from 'debug';
@@ -64,7 +64,7 @@ export async function trace({
       const txReceipt = await provider.getTransactionReceipt(txHash);
 
       // this is a transaction hash
-      console.log(gray('Detected transaction hash'));
+      console.log(chalk.gray('Detected transaction hash'));
 
       data = txData.data;
       value = value || txData.value;
@@ -87,10 +87,10 @@ export async function trace({
     });
     if (r !== null) {
       to = r.contract.address;
-      console.log(gray(`Inferred contract for call: ${r.name}`));
+      console.log(chalk.gray(`Inferred contract for call: ${r.name}`));
     } else {
       console.log(
-        yellow(
+        chalk.yellow(
           'Could not find a contract for this call. Are you sure the call can be traced on a contract on this cannon package? Pass `--to` to set manually if necessary'
         )
       );
@@ -132,7 +132,7 @@ export async function trace({
       await simulateProvider.send('hardhat_setBalance', [fullTxn.from, ethers.utils.parseEther('10000').toString()]);
       signer = fullTxn.from;
     }
-    console.log(gray('Simulating transaction (be patient! this could take a while...)'));
+    console.log(chalk.gray('Simulating transaction (be patient! this could take a while...)'));
     const pushedTxn = await simulateProvider.getSigner(signer).sendTransaction(fullTxn);
 
     try {
@@ -158,10 +158,16 @@ export async function trace({
     console.log();
     if (receipt.status == 1) {
       console.log(
-        green(bold(`Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`))
+        chalk.green(
+          chalk.bold(
+            `Transaction completes successfully with return value: ${traces[0].result.output} (${totalGasUsed} gas)`
+          )
+        )
       );
     } else {
-      console.log(red(bold(`Transaction completes with error: ${traces[0].result.output} (${totalGasUsed} gas)`)));
+      console.log(
+        chalk.red(chalk.bold(`Transaction completes with error: ${traces[0].result.output} (${totalGasUsed} gas)`))
+      );
     }
   } else {
     console.log(JSON.stringify(traces, null, 2));

@@ -1,8 +1,9 @@
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import { ContractArtifact } from '@usecannon/builder';
-import _ from 'lodash';
-import { execPromise } from './helpers';
+import _ from 'lodash-es';
+import { execPromise } from './helpers.js';
 import Debug from 'debug';
 
 const debug = Debug('cannon:cli:foundry');
@@ -61,7 +62,7 @@ export async function getFoundryArtifact(name: string, baseDir = ''): Promise<Co
   baseDir = findProjectRoot(baseDir);
 
   const artifactPath = path.join(path.join(baseDir, foundryOpts.out), `${name}.sol`, `${name}.json`);
-  const artifactBuffer = await fs.readFile(artifactPath);
+  const artifactBuffer = await fsp.readFile(artifactPath);
   const artifact = JSON.parse(artifactBuffer.toString()) as any;
 
   // save build metadata

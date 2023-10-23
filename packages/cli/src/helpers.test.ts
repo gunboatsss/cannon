@@ -1,4 +1,4 @@
-import { getChainId, getChainDataFromId, getChainName } from './helpers';
+import { getChainId, getChainDataFromId, getChainName } from './helpers.js';
 
 describe('getChainId', getChainIdTestCases);
 describe('getChainName', getChainNameTestCases);

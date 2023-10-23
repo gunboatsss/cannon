@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import fs from 'fs-extra';
-import _ from 'lodash';
+import fs from 'fs';
+import _ from 'lodash-es';
 import Debug from 'debug';
 import { z } from 'zod';
 import {
@@ -13,7 +13,7 @@ import {
   registerAction,
   PackageState,
 } from '@usecannon/builder';
-import { runSchema } from '../schemas.zod';
+import { runSchema } from '../schemas.zod.js';
 
 const debug = Debug('cannon:builder:run');
 

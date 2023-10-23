@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-const { red } = require('chalk');
-const cli = require('../dist/src');
+import chalk from 'chalk';
+import cli from '../dist/src/index.js';
 
-cli.default
+cli
   .parseAsync()
   .then(() => {
     process.exit(0);
   })
   .catch((err) => {
     if (err.message && process.env.TRACE !== 'true') {
-      console.error(red('Error: ' + err.message));
+      console.error(chalk.red('Error: ' + err.message));
     } else {
       console.error(err);
     }

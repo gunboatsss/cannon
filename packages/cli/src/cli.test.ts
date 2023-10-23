@@ -1,4 +1,4 @@
-import cli from './index';
+import cli from './index.js';
 
 describe('cli test', () => {
   it('help prints not empty', () => {

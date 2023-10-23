@@ -2,12 +2,12 @@ import { ethers } from 'ethers';
 
 import provider from 'eth-provider';
 import { CannonWrapperGenericProvider } from '@usecannon/builder';
-import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants';
+import { DEFAULT_REGISTRY_PROVIDER_URL } from '../constants.js';
 
-import { bold } from 'chalk';
+import chalk from 'chalk';
 
 import Debug from 'debug';
-import { CliSettings } from '../settings';
+import { CliSettings } from '../settings.js';
 
 const debug = Debug('cannon:cli:provider');
 
@@ -17,9 +17,9 @@ export async function resolveWriteProvider(settings: CliSettings, chainId: numbe
       "\nUsing Frame as the default provider. If you don't have Frame installed, Cannon defaults to http://localhost:8545."
     );
     console.warn(
-      `Set a custom provider url in your settings (run ${bold('cannon setup')}) or pass it as an env variable (${bold(
-        'CANNON_PROVIDER_URL'
-      )}).\n\n`
+      `Set a custom provider url in your settings (run ${chalk.bold(
+        'cannon setup'
+      )}) or pass it as an env variable (${chalk.bold('CANNON_PROVIDER_URL')}).\n\n`
     );
   }
 
@@ -36,9 +36,9 @@ export async function resolveRegistryProvider(settings: CliSettings) {
       `\nUsing Frame as the default registry provider. If you don't have Frame installed cannon defaults to: ${DEFAULT_REGISTRY_PROVIDER_URL}`
     );
     console.warn(
-      `Set a custom registry provider url in your settings (run ${bold(
+      `Set a custom registry provider url in your settings (run ${chalk.bold(
         'cannon setup'
-      )}) or pass it as an env variable (${bold('CANNON_REGISTRY_PROVIDER_URL')}).\n\n`
+      )}) or pass it as an env variable (${chalk.bold('CANNON_REGISTRY_PROVIDER_URL')}).\n\n`
     );
   }
 

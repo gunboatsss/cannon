@@ -1,13 +1,15 @@
 import { CannonRegistry, OnChainRegistry, InMemoryRegistry, FallbackRegistry } from '@usecannon/builder';
-import _ from 'lodash';
+import _ from 'lodash-es';
 import path from 'path';
-import fs from 'fs-extra';
+import fs from 'fs';
+import fsp from 'fs/promises';
+import fse from 'fs-extra/esm';
 import Debug from 'debug';
-import { yellowBright } from 'chalk';
+import chalk from 'chalk';
 
-import { CliSettings } from './settings';
-import { resolveRegistryProvider } from './util/provider';
-import { isConnectedToInternet } from './util/is-connected-to-internet';
+import { CliSettings } from './settings.js';
+import { resolveRegistryProvider } from './util/provider.js';
+import { isConnectedToInternet } from './util/is-connected-to-internet.js';
 
 const debug = Debug('cannon:cli:registry');
 
@@ -38,7 +40,7 @@ export class LocalRegistry extends CannonRegistry {
 
     debug('load local package link', packageRef, variant, 'at file', this.getTagReferenceStorage(packageRef, variant));
     try {
-      return (await fs.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
+      return (await fsp.readFile(this.getTagReferenceStorage(packageRef, variant))).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
@@ -54,7 +56,7 @@ export class LocalRegistry extends CannonRegistry {
         'at file',
         this.getTagReferenceStorage(packageName, variant) + '.meta'
       );
-      return (await fs.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
+      return (await fsp.readFile(this.getTagReferenceStorage(packageName, variant) + '.meta')).toString().trim();
     } catch (err) {
       debug('could not load:', err);
       return null;
@@ -65,16 +67,16 @@ export class LocalRegistry extends CannonRegistry {
     for (const packageName of packagesNames) {
       debug('package local link', packageName);
       const file = this.getTagReferenceStorage(packageName, variant);
-      await fs.mkdirp(path.dirname(file));
-      await fs.writeFile(file, url);
-      await fs.writeFile(file + '.meta', metaUrl);
+      await fse.mkdirp(path.dirname(file));
+      await fsp.writeFile(file, url);
+      await fsp.writeFile(file + '.meta', metaUrl);
     }
 
     return [];
   }
 
   async scanDeploys(packageName: RegExp | string, variant: RegExp | string): Promise<{ name: string; variant: string }[]> {
-    const allTags = await fs.readdir(path.join(this.packagesDir, 'tags'));
+    const allTags = await fsp.readdir(path.join(this.packagesDir, 'tags'));
 
     debug('scanning deploys in:', path.join(this.packagesDir, 'tags'), allTags);
     debug(`looking for ${packageName}, ${variant}`);
@@ -97,7 +99,7 @@ export class LocalRegistry extends CannonRegistry {
     }
     const [name, version] = filterPackage.split(':');
 
-    const urls = (await fs.readdir(this.packagesDir))
+    const urls = (await fsp.readdir(this.packagesDir))
       .filter((f) => f.match(new RegExp(`${name || '.*'}_${version || '.*'}_${filterVariant || '.*'}`)))
       .map((f) => fs.readFileSync(path.join(this.packagesDir, f)).toString('utf8'));
 
@@ -121,7 +123,7 @@ async function checkLocalRegistryOverride({
   const localResult = await _.last(fallbackRegistry.registries).getUrl(packageRef, variant);
   if (registry instanceof OnChainRegistry && localResult && localResult != result) {
     console.log(
-      yellowBright(
+      chalk.yellowBright(
         `⚠️  The package ${packageRef} was found on the official on-chain registry, but you also have a local build of this package. To use this local build instead, run this command with '--registry-priority local'`
       )
     );
@@ -140,7 +142,7 @@ export async function createDefaultReadRegistry(
   if (!(await isConnectedToInternet())) {
     debug('not connected to internet, using local registry only');
     // When not connected to the internet, we don't want to check the on-chain registry version to not throw an error
-    console.log(yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
+    console.log(chalk.yellowBright('⚠️  You are not connected to the internet. Using local registry only'));
     return new FallbackRegistry([...additionalRegistries, localRegistry]);
   } else if (settings.registryPriority === 'local') {
     debug('local registry is the priority, using local registry first');

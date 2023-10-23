@@ -1,6 +1,7 @@
-import fs from 'fs-extra';
+import fs from 'fs';
+import fse from 'fs-extra/esm';
 import path from 'path';
-import _ from 'lodash';
+import _ from 'lodash-es';
 import untildify from 'untildify';
 import {
   DEFAULT_CANNON_DIRECTORY,
@@ -8,7 +9,7 @@ import {
   DEFAULT_REGISTRY_PROVIDER_URL,
   DEFAULT_REGISTRY_IPFS_ENDPOINT,
   CLI_SETTINGS_STORE,
-} from './constants';
+} from './constants.js';
 
 import Debug from 'debug';
 
@@ -100,7 +101,7 @@ function _resolveCliSettings(overrides: Partial<CliSettings> = {}): CliSettings 
   if (process.env.CANNON_SETTINGS) {
     fileSettings = JSON.parse(process.env.CANNON_SETTINGS);
   } else {
-    fileSettings = fs.existsSync(cliSettingsStore) ? fs.readJsonSync(cliSettingsStore) : {};
+    fileSettings = fs.existsSync(cliSettingsStore) ? fse.readJsonSync(cliSettingsStore) : {};
   }
 
   if (!Object.values(fileSettings).length) {

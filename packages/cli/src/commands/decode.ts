@@ -1,7 +1,7 @@
 import { ContractData, DeploymentInfo, decodeTxError } from '@usecannon/builder';
 import { ethers } from 'ethers';
-import { bold, gray, green, italic, yellow } from 'chalk';
-import { readDeployRecursive } from '../package';
+import chalk from 'chalk';
+import { readDeployRecursive } from '../package.js';
 
 import { PackageReference } from '@usecannon/builder/dist/package';
 
@@ -26,11 +26,15 @@ export async function decode({
 
   if (presetArg && preset) {
     console.warn(
-      yellow(
-        bold(`Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`)
+      chalk.yellow(
+        chalk.bold(
+          `Duplicate preset definitions in package reference "${packageRef}" and in --preset argument: "${presetArg}"`
+        )
       )
     );
-    console.warn(yellow(bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`)));
+    console.warn(
+      chalk.yellow(chalk.bold(`The --preset option is deprecated. Defaulting to package reference "${preset}"...`))
+    );
   }
 
   const selectedPreset = preset || presetArg || 'main';
@@ -56,7 +60,7 @@ export async function decode({
   }
 
   console.log();
-  console.log(green(`${fragment.format('full')}`), `${'sighash' in tx ? italic(gray(tx.sighash)) : ''}`);
+  console.log(chalk.green(`${fragment.format('full')}`), `${'sighash' in tx ? chalk.italic(chalk.gray(tx.sighash)) : ''}`);
 
   if ('errorFragment' in tx) {
     const errorMessage = decodeTxError(data[0], abis);
@@ -67,7 +71,7 @@ export async function decode({
   }
 
   const renderParam = (prefix: string, input: ethers.utils.ParamType) =>
-    `${prefix}${gray(input.format())} ${bold(input.name)}`;
+    `${prefix}${chalk.gray(input.format())} ${chalk.bold(input.name)}`;
 
   const renderArgs = (input: ethers.utils.ParamType, value: ethers.utils.Result, p = '  ') => {
     if (Array.isArray(input)) {
@@ -85,7 +89,7 @@ export async function decode({
         } else if (input.arrayChildren.baseType === 'tuple') {
           renderArgs(input.arrayChildren.components[i], value[i], p.repeat(2));
         } else {
-          console.log(`${p.repeat(2)}${gray(`[${i}]`)}`, _renderValue(input.arrayChildren, value[i] as any));
+          console.log(`${p.repeat(2)}${chalk.gray(`[${i}]`)}`, _renderValue(input.arrayChildren, value[i] as any));
         }
       }
     } else {
