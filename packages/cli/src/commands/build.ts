@@ -153,7 +153,7 @@ export async function build({
   let oldDeployData: DeploymentInfo | null = null;
   const prevPkg = upgradeFrom || `${name}:${version}`;
 
-  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset || 'main', runtime.chainId);
+  oldDeployData = await runtime.readDeploy(prevPkg, selectedPreset, runtime.chainId);
 
   // Update pkgInfo (package.json) with information from existing package, if present
   if (oldDeployData && !wipe) {
@@ -165,9 +165,9 @@ export async function build({
     }
   } else {
     if (upgradeFrom) {
-      throw new Error(`Package "${prevPkg}" not found.`);
+      throw new Error(`Package "${prevPkg}@${selectedPreset}" not found.`);
     } else {
-      console.warn(`Package "${prevPkg}" not found, creating new build...`);
+      console.warn(`Package "${prevPkg}@${selectedPreset}" not found, creating new build...`);
     }
   }
   console.log('');
@@ -212,7 +212,13 @@ export async function build({
   console.log('');
 
   const providerUrlMsg = providerUrl?.includes(',') ? providerUrl.split(',')[0] : providerUrl;
-  console.log(bold(`Building the chain (ID ${chainId}${providerUrlMsg ? ' via ' + providerUrlMsg : ''})...`));
+  console.log(
+    bold(
+      `Building the chain (ID ${chainId}${
+        providerUrlMsg ? ' via ' + providerUrlMsg.replace(RegExp(/[=A-Za-z0-9_-]{32,}/), '*'.repeat(32)) : ''
+      })...`
+    )
+  );
   if (!_.isEmpty(packageDefinition.settings)) {
     console.log('Overriding the default values for the cannonfile’s settings with the following:');
     for (const [key, value] of Object.entries(packageDefinition.settings)) {
@@ -261,11 +267,15 @@ export async function build({
   // save the state to ipfs
   const miscUrl = await runtime.recordMisc();
 
+  const chainDef = def.toJson();
+
+  chainDef.version = pkgVersion;
+
   if (miscUrl) {
     const deployUrl = await runtime.putDeploy({
       generator: `cannon cli ${pkg.version}`,
       timestamp: Math.floor(Date.now() / 1000),
-      def: def.toJson(),
+      def: chainDef,
       state: newState,
       options: resolvedSettings,
       status: partialDeploy ? 'partial' : 'complete',
@@ -274,11 +284,14 @@ export async function build({
       chainId: runtime.chainId,
     });
 
-    const metaUrl = await runtime.putBlob(await readMetadataCache(`${pkgName}:${pkgVersion}`));
+    const metadata = await readMetadataCache(`${pkgName}:${pkgVersion}`);
 
+    const metaUrl = await runtime.putBlob(metadata);
+
+    // locally store cannon packages (version + latest)
     if (persist) {
       await resolver.publish(
-        [`${name}:latest`, `${name}:${version}`],
+        [`${name}:${version}`, `${name}:latest`],
         `${runtime.chainId}-${selectedPreset}`,
         deployUrl!,
         metaUrl!
@@ -314,7 +327,11 @@ export async function build({
 
       console.log(yellow('Run ' + bold(`cannon publish ${deployUrl}`) + ' to pin the partial deployment package on IPFS.'));
     } else {
-      console.log(greenBright(`Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} (${deployUrl})`));
+      console.log(
+        greenBright(
+          `Successfully built package ${bold(`${name}:${version}@${selectedPreset}`)} \n - Deploy Url: ${deployUrl}`
+        )
+      );
     }
   } else {
     console.log(

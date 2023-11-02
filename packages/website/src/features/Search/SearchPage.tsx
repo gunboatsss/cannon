@@ -13,7 +13,7 @@ import {
   Image,
   Link,
 } from '@chakra-ui/react';
-import { useQuery } from '@apollo/client';
+import { useQueryCannonSubgraphData } from '@/hooks/subgraph';
 import {
   TOTAL_PACKAGES,
   FILTERED_PACKAGES_AND_VARIANTS,
@@ -33,19 +33,20 @@ import { debounce } from 'lodash';
 export const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  const { data: totalPackages, loading: totalLoading } = useQuery<
-    GetTotalPackagesQuery,
-    GetTotalPackagesQueryVariables
-  >(TOTAL_PACKAGES, {
-    variables: { query: '' },
-  });
+  const { data: totalPackages, loading: totalLoading } =
+    useQueryCannonSubgraphData<
+      GetTotalPackagesQuery,
+      GetTotalPackagesQueryVariables
+    >(TOTAL_PACKAGES, {
+      variables: { query: '' },
+    });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
   };
   const debouncedHandleSearch = debounce(handleSearch, 300);
 
-  const { loading, error, data } = useQuery<
+  const { loading, error, data } = useQueryCannonSubgraphData<
     GetFilteredPackagesAndVariantsQuery,
     GetFilteredPackagesAndVariantsQueryVariables
   >(FILTERED_PACKAGES_AND_VARIANTS, {
@@ -190,11 +191,7 @@ export const SearchPage = () => {
               <Container ml={0} maxWidth="container.xl">
                 {results.map((pkg: any) => (
                   <Box mb="8" key={pkg.id}>
-                    <PackageCardExpandable
-                      maxHeight="186px"
-                      pkg={pkg}
-                      key={pkg.name}
-                    />
+                    <PackageCardExpandable pkg={pkg} key={pkg.name} />
                   </Box>
                 ))}
               </Container>

@@ -1,11 +1,12 @@
 {
   "name": "@usecannon/builder",
-  "version": "2.8.1",
+  "version": "2.9.2",
   "description": "Assembles cannonfile.toml manifests into cannon packages.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "test": "jest",
