@@ -65,15 +65,6 @@ export const CodeExplorer: FC<{
 
       if (firstArtifact) {
         const [, firstArtifactValue] = firstArtifact;
-<<<<<<< HEAD
-        const sortedSources = Object.entries(
-          JSON.parse((firstArtifactValue as any)?.source?.input).sources,
-        ).sort(([keyA], [keyB]) => {
-          const countA = (keyA.match(/\//g) || []).length;
-          const countB = (keyB.match(/\//g) || []).length;
-          return countA - countB;
-        });
-=======
         const sortedSources = (firstArtifactValue as any)?.source?.input
           ? Object.entries(
               JSON.parse((firstArtifactValue as any)?.source?.input).sources
@@ -83,7 +74,6 @@ export const CodeExplorer: FC<{
               return countA - countB;
             })
           : [];
->>>>>>> main
 
         const firstSource = sortedSources[0];
 
@@ -142,86 +132,6 @@ export const CodeExplorer: FC<{
                           : artifactKey}
                       </Heading>
 
-<<<<<<< HEAD
-                        <Button
-                          variant="outline"
-                          colorScheme="white"
-                          size="xs"
-                          color="gray.300"
-                          borderColor="gray.500"
-                          _hover={{ bg: 'gray.700' }}
-                          leftIcon={<DownloadIcon />}
-                          onClick={() => {
-                            handleDownload(
-                              (artifactValue as any)?.abi,
-                              'deployments.json',
-                            );
-                          }}
-                          ml="auto"
-                        >
-                          ABI
-                        </Button>
-                      </Flex>
-                      {Object.entries(
-                        JSON.parse((artifactValue as any)?.source?.input)
-                          .sources,
-                      )
-                        .sort(([keyA], [keyB]) => {
-                          const countA = (keyA.match(/\//g) || []).length;
-                          const countB = (keyB.match(/\//g) || []).length;
-                          return countA - countB; // Sorts in ascending order
-                        })
-                        .map(([sourceKey, sourceValue]) => {
-                          return (
-                            <Tooltip
-                              label={sourceKey}
-                              key={sourceKey}
-                              placement="right"
-                            >
-                              <Box
-                                borderRadius="md"
-                                mb={0.5}
-                                py={0.5}
-                                px="2"
-                                cursor="pointer"
-                                fontSize="sm"
-                                _hover={{ background: 'gray.800' }}
-                                onClick={() => {
-                                  setSelectedCode(
-                                    (sourceValue as any)?.content,
-                                  );
-                                  setSelectedLanguage('solidity');
-                                  setSelectedKey(sourceKey);
-                                }}
-                                whiteSpace="nowrap"
-                                overflow="hidden"
-                                textOverflow="ellipsis"
-                                style={{
-                                  direction: 'rtl', // Reverses the text display order
-                                  unicodeBidi: 'bidi-override', // Overrides the default bidi algorithm
-                                }}
-                                textAlign="left" // Left-aligns the text
-                                fontWeight={
-                                  selectedKey == sourceKey
-                                    ? 'medium'
-                                    : undefined
-                                }
-                                background={
-                                  selectedKey == sourceKey
-                                    ? 'gray.800'
-                                    : undefined
-                                }
-                              >
-                                {sourceKey.split('').reverse().join('')}
-                              </Box>
-                            </Tooltip>
-                          );
-                        })}
-                    </Box>
-                  );
-                },
-              )}
-=======
                       <Button
                         variant="outline"
                         colorScheme="white"
@@ -294,7 +204,6 @@ export const CodeExplorer: FC<{
                   </Box>
                 );
               })}
->>>>>>> main
 
               {metadata.cannonfile && (
                 <>
