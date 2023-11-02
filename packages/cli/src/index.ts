@@ -314,18 +314,15 @@ applyCommandsConfig(program.command('verify'), commandsConfig.verify).action(asy
   await verify(packageName, options.apiKey, options.preset, options.chainId);
 });
 
-applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(async function (
-  packageName,
-  command,
-  options,
-  flags
-) {
-  const { alter } = await import('./commands/alter');
-  // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
-  await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
-    getArtifact: getFoundryArtifact,
-  });
-});
+applyCommandsConfig(program.command('alter'), commandsConfig.alter).action(
+  async function (packageName, command, options, flags) {
+    const { alter } = await import('./commands/alter');
+    // note: for command below, pkgInfo is empty because forge currently supplies no package.json or anything similar
+    await alter(packageName, flags.chainId, flags.preset, {}, command, options, {
+      getArtifact: getFoundryArtifact,
+    });
+  }
+);
 
 applyCommandsConfig(program.command('fetch'), commandsConfig.fetch).action(async function (packageName, ipfsHash, options) {
   const { fetch } = await import('./commands/fetch');
