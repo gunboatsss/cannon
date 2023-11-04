@@ -15,8 +15,6 @@ declare module 'hardhat/types/config' {
     cannon: CannonNetworkConfig;
   }
 
-  //export type NetworkConfig = NetworkConfig | HttpNetworkConfig;
-
   // TODO: this is a known (and apparently decided to be unsolved) issue with ts https://github.com/microsoft/TypeScript/issues/28078
   // therefore, in the future it would be best to update hardhat upstream to use the reccomended workaround and
   // remove the hardhatntework extension
