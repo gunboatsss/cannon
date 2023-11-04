@@ -7,11 +7,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "module": "commonjs",
-    "outDir": "./build",
     "target": "es6",
     "skipLibCheck": true,
     "isolatedModules": true,
     "baseUrl": "src",
     "lib": ["ESNext"]
-  }
+  },
+  "exclude": ["./packages/*/dist"]
 }
