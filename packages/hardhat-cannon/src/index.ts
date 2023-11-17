@@ -9,6 +9,7 @@ import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
 import './tasks/run';
+import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
 import './subtasks/load-deploy';

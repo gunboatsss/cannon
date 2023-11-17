@@ -44,6 +44,7 @@
     "hardhat": ">=2.0.0"
   },
   "dependencies": {
+    "@foundry-rs/hardhat-anvil": "^0.1.7",
     "@iarna/toml": "^3.0.0",
     "@usecannon/builder": "^2.10.4",
     "@usecannon/cli": "^2.10.4",

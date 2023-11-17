@@ -1,0 +1,4 @@
+name = "consumer"
+version = "0.0.1-testable"
+description = "Simple project to verify the functionality of cannon's test task on hardhat"
+include = ["../cannonfile.toml"]

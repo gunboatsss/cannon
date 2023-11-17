@@ -1,6 +1,7 @@
 export const TASK_PREFIX = 'cannon';
 
 export const TASK_CANNON = TASK_PREFIX;
+export const TASK_TEST = `${TASK_PREFIX}:test`;
 export const TASK_RUN = `${TASK_PREFIX}:run`;
 export const TASK_ALTER = `${TASK_PREFIX}:alter`;
 export const TASK_BUILD = `${TASK_PREFIX}:build`;
