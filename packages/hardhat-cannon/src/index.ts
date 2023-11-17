@@ -1,10 +1,9 @@
-import path from 'path';
-import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
-import { extendConfig, extendEnvironment } from 'hardhat/config';
-import '@nomiclabs/hardhat-ethers';
+import path from 'node:path';
 import { CANNON_CHAIN_ID } from '@usecannon/builder';
+import { extendConfig, extendEnvironment } from 'hardhat/config';
+import { HardhatConfig, HardhatRuntimeEnvironment, HardhatUserConfig } from 'hardhat/types';
 import { augmentProvider } from './internal/augment-provider';
-
+import '@nomiclabs/hardhat-ethers';
 import './tasks/alter';
 import './tasks/build';
 import './tasks/inspect';
@@ -12,8 +11,7 @@ import './tasks/run';
 import './tasks/test';
 import './subtasks/get-artifact-data';
 import './subtasks/load-package-definition';
-import './subtasks/load-deploy';
-import './subtasks/rpc';
+import './subtasks/run-anvil-node';
 import './type-extensions';
 
 extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {
@@ -33,6 +31,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
   } as any;
 });
 
-extendEnvironment(async (env: HardhatRuntimeEnvironment) => {
-  await augmentProvider(env);
+extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
+  hre.cannon = {};
+  await augmentProvider(hre);
 });

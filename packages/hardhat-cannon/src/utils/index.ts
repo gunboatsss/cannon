@@ -1,0 +1,16 @@
+import { ethers } from 'ethers';
+import hre from 'hardhat';
+import { getContractDataFromOutputs } from '../internal/cannon';
+
+/** Get data of a given contract from the built outputs */
+export function getContractData(contractName: string) {
+  if (!hre.cannon.outputs) throw new Error('There are no cannon artifacs present');
+  return getContractDataFromOutputs(contractName, hre.cannon.outputs);
+}
+
+/** Get an instance of a ethers.Contract from the built outputs */
+export async function getContract(contractName: string, signer?: ethers.Signer) {
+  if (!signer) [signer] = await hre.ethers.getSigners();
+  const contract = getContractData(contractName);
+  return new ethers.Contract(contract.address || ethers.constants.AddressZero, contract.abi, signer);
+}

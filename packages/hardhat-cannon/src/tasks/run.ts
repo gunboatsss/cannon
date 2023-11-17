@@ -1,11 +1,10 @@
-import path from 'path';
-
+import path from 'node:path';
+import { loadCannonfile, PackageSpecification, parsePackagesArguments, run, runRpc } from '@usecannon/cli';
+import { ethers } from 'ethers';
 import { task } from 'hardhat/config';
 import { HardhatNetworkAccountConfig, HttpNetworkConfig } from 'hardhat/types';
-import { run, parsePackagesArguments, runRpc, PackageSpecification, loadCannonfile } from '@usecannon/cli';
-import { TASK_RUN } from '../task-names';
 import { loadPackageJson } from '../internal/load-pkg-json';
-import { ethers } from 'ethers';
+import { TASK_RUN } from '../task-names';
 
 task(TASK_RUN, 'Utility for instantly loading cannon packages in standalone contexts')
   .addOptionalVariadicPositionalParam(

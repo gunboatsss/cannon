@@ -1,4 +1,6 @@
 import type { HardhatNetworkConfig } from 'hardhat/types/config';
+import type { ethers } from 'ethers';
+import type { BuildOutputs } from './types';
 
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
@@ -14,8 +16,6 @@ declare module 'hardhat/types/config' {
   export interface NetworksConfig {
     cannon: CannonNetworkConfig;
   }
-
-  //export type NetworkConfig = NetworkConfig | HttpNetworkConfig;
 
   // TODO: this is a known (and apparently decided to be unsolved) issue with ts https://github.com/microsoft/TypeScript/issues/28078
   // therefore, in the future it would be best to update hardhat upstream to use the reccomended workaround and
@@ -33,6 +33,15 @@ declare module 'hardhat/types/config' {
   export interface HardhatConfig {
     cannon: {
       publicSourceCode: boolean;
+    };
+  }
+}
+
+declare module 'hardhat/types/runtime' {
+  export interface HardhatRuntimeEnvironment {
+    cannon: {
+      /** Output generated on last build */
+      outputs?: BuildOutputs;
     };
   }
 }

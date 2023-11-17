@@ -1,15 +1,10 @@
-import { EthereumProvider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
-
-//import { HttpProvider } from 'hardhat/internal/core/providers/http';
-import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
-
-import { BackwardsCompatibilityProviderAdapter } from 'hardhat/internal/core/providers/backwards-compatibility';
+import { createProviderProxy } from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
 import { ChainArtifacts, handleTxnError } from '@usecannon/builder';
 import { ethers } from 'ethers';
-
+import { BackwardsCompatibilityProviderAdapter } from 'hardhat/internal/core/providers/backwards-compatibility';
 import { createProvider } from 'hardhat/internal/core/providers/construction';
-
-import { createProviderProxy } from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
+import { ProviderWrapper } from 'hardhat/internal/core/providers/wrapper';
+import { EthereumProvider, HardhatRuntimeEnvironment, RequestArguments } from 'hardhat/types';
 
 class CannonWrapperProvider extends ProviderWrapper {
   artifacts: ChainArtifacts;

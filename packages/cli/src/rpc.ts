@@ -1,9 +1,9 @@
+import { ChildProcess, spawn } from 'node:child_process';
 import http from 'node:http';
 import { Readable } from 'node:stream';
-import { spawn, ChildProcess } from 'node:child_process';
 import { CANNON_CHAIN_ID, CannonWrapperGenericProvider } from '@usecannon/builder';
-import { ethers } from 'ethers';
 import Debug from 'debug';
+import { ethers } from 'ethers';
 import _ from 'lodash';
 import { execPromise, toArgs } from './helpers';
 import { AnvilOptions } from './util/anvil';
@@ -143,7 +143,7 @@ function timeout(period: number, msg: string) {
   return new Promise<ChildProcess>((_, reject) => setTimeout(() => reject(new Error(msg)), period));
 }
 
-export function getProvider(expectedAnvilInstance: ChildProcess): CannonWrapperGenericProvider {
+export function getProvider(expectedAnvilInstance: CannonRpcNode): CannonWrapperGenericProvider {
   if (anvilInstance === expectedAnvilInstance) {
     return anvilProvider!;
   } else {
