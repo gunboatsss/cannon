@@ -120,7 +120,7 @@ export async function run(packages: PackageSpecification[], options: RunOptions)
         presetArg: preset,
         upgradeFrom: options.upgradeFrom,
         persist: false,
-        skipReference: true
+        skipReference: true,
       });
 
       buildOutputs.push({ pkg, outputs });
