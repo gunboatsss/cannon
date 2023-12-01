@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { ChainBuilderContext } from '@usecannon/builder';
+import { ChainBuilderContext, ContractMap } from '@usecannon/builder';
 import { build, getProvider, loadCannonfile, PackageSettings } from '@usecannon/cli';
 import { ethers } from 'ethers';
 import { SUBTASK_GET_ARTIFACT } from '../task-names';
@@ -58,33 +58,42 @@ export async function cannonBuild(options: BuildOptions) {
   return { outputs };
 }
 
-export function getContractDataFromOutputs(contractName: string, outputs: BuildOutputs) {
-  let contract;
-
-  if (contractName.includes('.')) {
-    const nestedContracts = contractName.split('.');
-
-    // this logic handles deeply nested imports such as synthetix.oracle_manager.Proxy
-    // which is really outputs.imports.synthetix.imports.oracle_manager.contracts.Proxy
-
-    let imports: ChainBuilderContext['imports'] | undefined = outputs.imports;
-
-    for (const c of nestedContracts.slice(0, -2)) {
-      if (!imports![c]) {
-        throw new Error(`cannonfile does not includes an import named "${c}"`);
-      } else {
-        imports = imports![c].imports;
-      }
-    }
-
-    contract = imports![nestedContracts[nestedContracts.length - 2]].contracts![nestedContracts[nestedContracts.length - 1]];
-  } else {
-    contract = outputs.contracts?.[contractName];
-  }
+export function getContractDataFromOutputs(outputs: BuildOutputs, contractName: string) {
+  const contracts = getAllContractDatasFromOutputs(outputs);
+  const contract = contracts[contractName];
 
   if (!contract) {
-    throw new Error(`Contract "${contractName}" not found on cannon build`);
+    const list = Object.keys(contracts).join('\n  ');
+    throw new Error(`Contract "${contractName}" not found on cannon build. Possible options: \n${list}`);
   }
 
   return contract;
+}
+
+export function getAllContractDatasFromOutputs(outputs: BuildOutputs) {
+  const result: ContractMap = {};
+  _setContractsDatasFromOutputs(outputs, result);
+  return result;
+}
+
+function _setContractsDatasFromOutputs(outputs: BuildOutputs, result: ContractMap, scope?: string) {
+  // this logic handles deeply nested imports such as synthetix.oracle_manager
+  // which is really outputs.imports.synthetix.imports.oracle_manager
+  const from = scope
+    ? scope.split('.').reduce((outputs, importName) => {
+        const from = outputs.imports?.[importName];
+        if (!from) throw new Error(`Could not find imports named "${importName}"`);
+        return from;
+      }, outputs)
+    : outputs;
+
+  for (const [contractName, contractData] of Object.entries(from.contracts || {})) {
+    const key = scope ? `${scope}.${contractName}` : contractName;
+    result[key] = contractData;
+  }
+
+  for (const subScope of Object.keys(from.imports || {})) {
+    const newScope = scope ? `${scope}.${subScope}` : subScope;
+    _setContractsDatasFromOutputs(outputs, result, newScope);
+  }
 }
