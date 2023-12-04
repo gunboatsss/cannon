@@ -3,6 +3,7 @@ import { task } from 'hardhat/config';
 import { augmentProvider } from '../internal/augment-provider';
 import { cannonBuild } from '../internal/cannon';
 import { parseAnvilOptions } from '../internal/parse-anvil-options';
+import { runTypeChainForOutputs } from '../internal/typechain';
 import { SubtaskRunAnvilNodeResult } from '../subtasks/run-anvil-node';
 import { SUBTASK_RUN_ANVIL_NODE, TASK_TEST } from '../task-names';
 
@@ -17,6 +18,8 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
     '(Optional) Custom anvil options json string or json file to configure when running on the cannon network or a local forked node'
   )
   .addOptionalParam('registryPriority', '(Optional) Which registry should be used first?', 'local')
+  .addOptionalParam('typechainOutDir', '(Optional) Folder where to write typechain types from the built cannonfile')
+  .addOptionalParam('typechainTarget', '(Optional) Format of Typechain files, defaults to ethers-v5', 'ethers-v5')
   .addFlag('noCompile', "Don't compile before running this task")
   .addOptionalParam('testFiles', 'An optional list of files separated by a comma to test')
   .addFlag('parallel', 'Run tests in parallel')
@@ -24,7 +27,14 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
   .addOptionalParam('grep', 'Only run tests matching the given string or regexp')
   .setAction(async (params, hre) => {
     let { cannonfile } = params;
-    const { settings, anvilOptions: anvilOptionsParam, preset, ...hardhatTestParams } = params;
+    const {
+      settings,
+      anvilOptions: anvilOptionsParam,
+      preset,
+      typechainOutDir,
+      typechainTarget,
+      ...hardhatTestParams
+    } = params;
 
     // If the first param is not a cannonfile, it should be parsed as settings
     if (typeof cannonfile === 'string' && !cannonfile.endsWith('.toml')) {
@@ -53,6 +63,22 @@ task(TASK_TEST, 'Utility for running hardhat tests on the cannon network')
     await augmentProvider(hre, outputs);
 
     hre.cannon.outputs = outputs;
+
+    if (typechainOutDir) {
+      await runTypeChainForOutputs(
+        {
+          cwd: hre.config.paths.root,
+          target: typechainTarget,
+          outDir: typechainOutDir,
+          flags: {
+            alwaysGenerateOverloads: true,
+            discriminateTypes: true,
+            environment: undefined,
+          },
+        },
+        hre.cannon.outputs
+      );
+    }
 
     return await hre.run('test', hardhatTestParams);
   });

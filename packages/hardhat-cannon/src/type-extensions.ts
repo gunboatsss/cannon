@@ -1,6 +1,6 @@
 import type { HardhatNetworkConfig } from 'hardhat/types/config';
-import type { ethers } from 'ethers';
 import type { BuildOutputs } from './types';
+import type { getContract } from './utils';
 
 declare module 'hardhat/types/config' {
   export interface ProjectPathsUserConfig {
@@ -42,6 +42,8 @@ declare module 'hardhat/types/runtime' {
     cannon: {
       /** Output generated on last build */
       outputs?: BuildOutputs;
+      /** Get an instance of a ethers.Contract from the built outputs */
+      getContract: typeof getContract;
     };
   }
 }

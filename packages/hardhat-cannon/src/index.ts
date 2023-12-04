@@ -32,6 +32,7 @@ extendConfig((config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) =>
 });
 
 extendEnvironment(async (hre: HardhatRuntimeEnvironment) => {
-  hre.cannon = {};
+  const { getContract } = await import('./utils');
+  hre.cannon = { getContract };
   await augmentProvider(hre);
 });

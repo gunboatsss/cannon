@@ -1,14 +1,14 @@
 import path from 'node:path';
-import { ChainBuilderContext, ContractMap } from '@usecannon/builder';
+import { ContractMap } from '@usecannon/builder';
 import { build, getProvider, loadCannonfile, PackageSettings } from '@usecannon/cli';
 import { ethers } from 'ethers';
 import { SUBTASK_GET_ARTIFACT } from '../task-names';
 import { getHardhatSigners } from './get-hardhat-signers';
 import { loadPackageJson } from './load-pkg-json';
 
-import type { BuildOutputs } from '../types';
 import type { CannonRpcNode } from '@usecannon/cli/src/rpc';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { BuildOutputs } from '../types';
 
 interface BuildOptions {
   hre: HardhatRuntimeEnvironment;
