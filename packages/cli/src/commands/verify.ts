@@ -148,16 +148,16 @@ export async function verify(packageRef: string, apiKey: string, presetArg: stri
     return {};
   };
 
-  const deployData = await runtime.readDeploy(fullPackageRef, chainId);
+  const deployUrl = await runtime.registry.getUrl(fullPackageRef, chainId);
 
-  if (!deployData) {
+  if (!deployUrl) {
     throw new Error(
       `deployment not found: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
   // go through all the packages and sub packages and make sure all contracts are being verified
-  await forPackageTree(runtime, deployData, verifyPackage);
+  await forPackageTree(runtime, deployUrl, verifyPackage);
 
   // at this point, all contracts should have been submitted for verification. so we are just printing status.
   for (const c in guids) {

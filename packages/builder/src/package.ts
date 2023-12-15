@@ -5,7 +5,7 @@ import { ChainDefinition } from './definition';
 import { CannonStorage } from './runtime';
 import { BundledOutput, ChainArtifacts, DeploymentInfo, StepState } from './types';
 
-const debug = Debug('cannon:cli:publish');
+const debug = Debug('cannon:builder:package');
 
 interface PartialRefValues {
   name: string;
@@ -22,6 +22,13 @@ export type CopyPackageOpts = {
   recursive?: boolean;
   preset?: string;
   includeProvisioned?: boolean;
+};
+
+export type DeployPackageArgs = {
+  packagesNames: string[];
+  chainId: number;
+  url: string;
+  metaUrl: string;
 };
 
 export const PKG_REG_EXP = /^(?<name>@?[a-z0-9][A-Za-z0-9-]{1,29}[a-z0-9])(?::(?<version>[^@]+))?(@(?<preset>[^\s]+))?$/;
@@ -107,20 +114,36 @@ export class PackageReference {
  * @param action The action to execute
  * @param onlyResultProvisioned Only return results for packages that were provisioned. Useful when publishing. Does not prevent execution of action.
  */
-export async function forPackageTree<T extends { url?: string; artifacts?: ChainArtifacts }>(
+export async function forPackageTree<T extends { url?: string; artifacts?: ChainArtifacts } | null>(
   store: CannonStorage,
-  deployInfo: DeploymentInfo,
+  loadUrl: string,
   action: (deployInfo: DeploymentInfo, context: BundledOutput | null) => Promise<T>,
   context?: BundledOutput | null,
-  onlyResultProvisioned = true
+  onlyResultProvisioned = true,
+  alreadyDone = new Set()
 ): Promise<T[]> {
   const results: T[] = [];
 
-  for (const importArtifact of _deployImports(deployInfo)) {
-    const nestedDeployInfo = await store.readBlob(importArtifact.url);
-    const result = await forPackageTree(store, nestedDeployInfo, action, importArtifact, onlyResultProvisioned);
+  if (alreadyDone.has(loadUrl)) {
+    debug(`skip because ipfs url already done ${loadUrl}`);
+    return [];
+  }
+  debug(`forPackageTree ${loadUrl}`);
+  alreadyDone.add(loadUrl);
 
-    const newUrl = _.last(result)!.url;
+  const deployInfo = await store.readBlob(loadUrl);
+
+  for (const importArtifact of _deployImports(deployInfo)) {
+    const result = await forPackageTree(
+      store,
+      importArtifact.url,
+      action,
+      importArtifact,
+      onlyResultProvisioned,
+      alreadyDone
+    );
+
+    const newUrl = _.last(result)?.url;
     if (newUrl && newUrl !== importArtifact.url) {
       importArtifact.url = newUrl!;
       const updatedNestedDeployInfo = await store.readBlob(newUrl);
@@ -152,9 +175,7 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
 
   const uri = await storage.registry.getUrl(fullPackageRef, chainId);
 
-  const deployInfo: DeploymentInfo = await storage.readBlob(uri!);
-
-  if (!deployInfo) {
+  if (!uri) {
     throw new Error(
       `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}" while checking for provisioned packages. Please double check your settings, and rebuild your package.`
     );
@@ -180,7 +201,7 @@ export async function getProvisionedPackages(packageRef: string, chainId: number
     };
   };
 
-  return await forPackageTree(storage, deployInfo, getPackages);
+  return await forPackageTree(storage, uri, getPackages);
 }
 
 /**
@@ -203,15 +224,8 @@ export async function publishPackage({
   const presetRef = packageReference ? packageReference.preset : 'main';
   const fullPackageRef = packageReference ? packageReference.fullPackageRef : packageRef;
 
-  const alreadyCopiedIpfs = new Map<string, any>();
-
   // this internal function will copy one package's ipfs records and return a publish call, without recursing
   const copyIpfs = async (deployInfo: DeploymentInfo, context: BundledOutput | null) => {
-    const checkKey = deployInfo.def.name + ':' + deployInfo.def.version + ':' + deployInfo.timestamp;
-    if (alreadyCopiedIpfs.has(checkKey)) {
-      return alreadyCopiedIpfs.get(checkKey);
-    }
-
     const newMiscUrl = await toStorage.putBlob(await fromStorage.readBlob(deployInfo!.miscUrl));
 
     // TODO: This metaUrl block is being called on each loop, but it always uses the same parameters.
@@ -235,34 +249,43 @@ export async function publishPackage({
       throw new Error('uploaded url is invalid');
     }
 
+    // check to see if the url has already been published
     const def = new ChainDefinition(deployInfo.def);
-
     const preCtx = await createInitialContext(def, deployInfo.meta, deployInfo.chainId!, deployInfo.options);
 
+    const packagesNames = _.uniq([
+      def.getVersion(preCtx) || 'latest',
+      ...(context && context.tags ? context.tags : tags),
+    ]).map((t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : presetRef}`);
+
+    if ((await toStorage.registry.getUrl(packagesNames[0], deployInfo.chainId || 0)) == url) {
+      return null;
+    }
+
+    // this value is what gets passed directly into the multicall for deployment of packages
     const returnVal = {
-      packagesNames: _.uniq([def.getVersion(preCtx) || 'latest', ...(context && context.tags ? context.tags : tags)]).map(
-        (t: string) => `${def.getName(preCtx)}:${t}@${context && context.preset ? context.preset : presetRef}`
-      ),
+      packagesNames,
       chainId,
       url,
       metaUrl: newMetaUrl || '',
     };
 
-    alreadyCopiedIpfs.set(checkKey, returnVal);
-
     return returnVal;
   };
 
-  const deployData = await fromStorage.readDeploy(fullPackageRef, chainId);
+  const deployUrl = await fromStorage.registry.getUrl(fullPackageRef, chainId);
 
-  if (!deployData) {
+  if (!deployUrl) {
     throw new Error(
       `could not find deployment artifact for ${fullPackageRef} with chain id "${chainId}". Please double check your settings, and rebuild your package.`
     );
   }
 
   // We call this regardless of includeProvisioned because we want to ALWAYS upload the subpackages ipfs data.
-  const calls = await forPackageTree(fromStorage, deployData, copyIpfs);
+  const calls: DeployPackageArgs[] = (await forPackageTree(fromStorage, deployUrl, copyIpfs)).filter(
+    // NOTE: not sure why typing is not kicking in here to remove null from type automatically so I have to cast it
+    (v) => v
+  ) as DeployPackageArgs[];
 
   if (includeProvisioned) {
     debug('publishing with provisioned');
