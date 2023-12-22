@@ -7,9 +7,9 @@ import {
   ChainBuilderRuntime,
   ChainDefinition,
   getOutputs,
-  PackageReference,
   InMemoryRegistry,
   IPFSLoader,
+  PackageReference,
   publishPackage,
 } from '@usecannon/builder';
 import { bold, gray, green, red, yellow } from 'chalk';
@@ -65,8 +65,16 @@ program
   .version(pkg.version)
   .description('Run a cannon package on a local node')
   .enablePositionalOptions()
-  .hook('preAction', async function () {
+  .option('-v', 'print logs for builder,equivalent to DEBUG=cannon:builder')
+  .option(
+    '-vv',
+    'print logs for builder and its definition section,equivalent to DEBUG=cannon:builder,cannon:builder:definition'
+  )
+  .option('-vvv', 'print logs for builder and its all sub sections,equivalent to DEBUG=cannon:builder*')
+  .option('-vvvv', 'print all cannon logs,equivalent to DEBUG=cannon:*')
+  .hook('preAction', async (thisCommand) => {
     await checkCannonVersion(pkg.version);
+    setDebugLevel(thisCommand.opts());
   });
 
 configureRun(program);
@@ -81,9 +89,9 @@ function applyCommandsConfig(command: Command, config: any) {
   }
   if (config.arguments) {
     config.arguments.map((argument: any) => {
-      if (argument.flags === '<packageNames...>') {
+      if (argument.flags === '<packageRefs...>') {
         command.argument(argument.flags, argument.description, parsePackagesArguments, argument.defaultValue);
-      } else if (command.name() === 'interact' && argument.flags === '<packageName>') {
+      } else if (command.name() === 'interact' && argument.flags === '<packageRef>') {
         command.argument(argument.flags, argument.description, parsePackageArguments, argument.defaultValue);
       } else {
         command.argument(argument.flags, argument.description, argument.defaultValue);
@@ -107,15 +115,34 @@ function applyCommandsConfig(command: Command, config: any) {
   return command;
 }
 
+function setDebugLevel(opts: any) {
+  switch (true) {
+    case opts.Vvvv:
+      Debug.enable('cannon:*');
+      break;
+    case opts.Vvv:
+      Debug.enable('cannon:builder*');
+      break;
+    case opts.Vv:
+      Debug.enable('cannon:builder,cannon:builder:definition');
+      break;
+    case opts.v:
+      Debug.enable('cannon:builder');
+      break;
+  }
+}
+
 function configureRun(program: Command) {
   return applyCommandsConfig(program, commandsConfig.run).action(async function (
     packages: PackageSpecification[],
     options,
     program
   ) {
+    console.log(bold('Starting local node...\n'));
+
     const { run } = await import('./commands/run');
 
-    options.port = Number.parseInt(options.port) || 8545;
+    options.port = Number.parseInt(options.port);
 
     let node: CannonRpcNode;
     if (options.chainId) {
@@ -195,8 +222,6 @@ async function doBuild(
     // doing a local build, just create a anvil rpc
     node = await runRpc({
       ...pickAnvilOptions(opts),
-      // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-      port: opts.port || 0,
     });
 
     provider = getProvider(node);
@@ -215,8 +240,6 @@ async function doBuild(
         {
           ...pickAnvilOptions(opts),
           chainId,
-          // https://www.lifewire.com/port-0-in-tcp-and-udp-818145
-          port: 0,
         },
         {
           forkProvider: p.provider.passThroughProvider as ethers.providers.JsonRpcProvider,
@@ -392,7 +415,6 @@ applyCommandsConfig(program.command('pin'), commandsConfig.pin).action(async fun
     packageRef: '@ipfs:' + ipfsHash,
     chainId: 13370,
     tags: [], // when passing no tags, it will only copy IPFS files, but not publish to registry
-    preset: 'main',
     fromStorage,
     toStorage,
   });
@@ -477,7 +499,7 @@ applyCommandsConfig(program.command('publish'), commandsConfig.publish).action(a
   await publish({
     packageRef,
     signer: signers[0],
-    tags: options.tags ? options.tags.split(',') : [],
+    tags: options.tags ? options.tags.split(',') : undefined,
     chainId: options.chainId ? Number.parseInt(options.chainId) : undefined,
     presetArg: options.preset ? (options.preset as string) : undefined,
     quiet: options.quiet,
@@ -551,11 +573,11 @@ applyCommandsConfig(program.command('prune'), commandsConfig.prune).action(async
   }
 });
 
-applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageName, data, options) {
+applyCommandsConfig(program.command('trace'), commandsConfig.trace).action(async function (packageRef, data, options) {
   const { trace } = await import('./commands/trace');
 
   await trace({
-    packageName,
+    packageRef,
     data,
     chainId: options.chainId,
     preset: options.preset,
@@ -581,7 +603,7 @@ applyCommandsConfig(program.command('decode'), commandsConfig.decode).action(asy
 });
 
 applyCommandsConfig(program.command('test'), commandsConfig.test).action(async function (cannonfile, forgeOpts, opts) {
-  opts.port = 8545;
+  opts.port = 0;
   const [node, , outputs] = await doBuild(cannonfile, [], opts);
 
   // basically we need to write deployments here
@@ -607,7 +629,10 @@ applyCommandsConfig(program.command('test'), commandsConfig.test).action(async f
   });
 });
 
-applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (packageDefinition, opts) {
+applyCommandsConfig(program.command('interact'), commandsConfig.interact).action(async function (
+  packageDefinition: PackageSpecification,
+  opts
+) {
   const cliSettings = resolveCliSettings(opts);
 
   const p = await resolveWriteProvider(cliSettings, opts.chainId);
@@ -615,6 +640,23 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
   const networkInfo = await p.provider.getNetwork();
 
   const resolver = await createDefaultReadRegistry(cliSettings);
+
+  const [name, version] = [packageDefinition.name, packageDefinition.version];
+  let preset = packageDefinition.preset;
+
+  // Handle deprecated preset specification
+  if (opts.preset) {
+    console.warn(
+      yellow(
+        bold(
+          'The --preset option will be deprecated soon. Reference presets in the package reference using the format name:version@preset'
+        )
+      )
+    );
+    preset = opts.preset;
+  }
+
+  const fullPackageRef = PackageReference.from(name, version, preset).fullPackageRef;
 
   const runtime = new ChainBuilderRuntime(
     {
@@ -635,29 +677,21 @@ applyCommandsConfig(program.command('interact'), commandsConfig.interact).action
     resolver,
     getMainLoader(cliSettings)
   );
-  const { name, version } = new PackageReference(packageDefinition);
-  let { preset } = new PackageReference(packageDefinition);
-
-  // Handle deprecated preset specification
-  if (opts.preset) {
-    console.warn(yellow(bold('The --preset option is deprecated. Reference presets in the format name:version@preset')));
-    preset = opts.preset;
-  }
-
-  const fullPackageRef = PackageReference.from(name, version, preset).toString();
 
   const deployData = await runtime.readDeploy(fullPackageRef, runtime.chainId);
 
   if (!deployData) {
     throw new Error(
-      `deployment not found: ${packageDefinition.name}:${packageDefinition.version}@${preset}. please make sure it exists for the given preset and current network.`
+      `deployment not found for package: ${fullPackageRef}. please make sure it exists for the given preset and current network.`
     );
   }
 
   const outputs = await getOutputs(runtime, new ChainDefinition(deployData.def), deployData.state);
 
   if (!outputs) {
-    throw new Error(`no cannon build found for chain ${networkInfo.chainId}/${preset}. Did you mean to run instead?`);
+    throw new Error(
+      `no cannon build found for chain ${networkInfo.chainId} with preset "${preset}". Did you mean to run the package instead?`
+    );
   }
 
   const contracts = [getContractsRecursive(outputs, p.provider)];

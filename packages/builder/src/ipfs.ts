@@ -23,17 +23,18 @@ export async function getContentCID(value: string | Buffer): Promise<string> {
   return Hash.of(value);
 }
 
-export async function isIpfsGateway(ipfsUrl: string) {
+export async function isIpfsGateway(ipfsUrl: string, customHeaders: Headers = {}) {
   debug(`is-gateway ${ipfsUrl}`);
 
   let isGateway = true;
   try {
-    await axios.post(ipfsUrl + '/api/v0/cat', null, { timeout: 15 * 1000 });
+    await axios.post(ipfsUrl + '/api/v0/cat', null, { headers: customHeaders, timeout: 15 * 1000 });
   } catch (err: unknown) {
     if (
       err instanceof AxiosError &&
       err.response?.status === 400 &&
-      err.response?.data.includes('argument "ipfs-path" is required')
+      typeof err.response?.data === 'string' &&
+      err.response.data.includes('argument "ipfs-path" is required')
     ) {
       isGateway = false;
     }
@@ -107,28 +108,34 @@ export async function writeIpfs(
   const buf = compress(data);
   const cid = await getContentCID(Buffer.from(buf));
 
-  if (!isGateway) {
-    debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
-    const formData = new FormData();
+  if (isGateway) {
+    throw new Error(
+      'unable to upload to ipfs: the IPFS url you have configured is either read-only (ie a gateway), or invalid. please double check your configuration.'
+    );
+  }
 
-    // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
-    // But, for node we still wanna keep using Buffer
-    const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
-    formData.append('data', content);
-    try {
-      const result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add', formData, { headers: customHeaders });
+  debug('upload to ipfs:', buf.length, Buffer.from(buf).length);
+  const formData = new FormData();
 
-      debug('upload', result.statusText, result.data.Hash);
+  // This check is needed for proper functionality in the browser, as the Buffer is not correctly concatenated
+  // But, for node we still wanna keep using Buffer
+  const content = typeof window !== 'undefined' && typeof Blob !== 'undefined' ? new Blob([buf]) : Buffer.from(buf);
+  formData.append('data', content);
 
-      if (cid !== result.data.Hash) {
-        throw new Error('Invalid CID generated locally');
-      }
-    } catch (err) {
-      throw new Error(
-        'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
-          err
-      );
-    }
+  let result: AxiosResponse<any, any>;
+  try {
+    result = await axios.post(ipfsUrl.replace('+ipfs', '') + '/api/v0/add?local=true', formData, { headers: customHeaders });
+  } catch (err) {
+    throw new Error(
+      'Failed to upload to IPFS. Make sure you have a local IPFS daemon running and run `cannon setup` to confirm your configuration is set properly. ' +
+        err
+    );
+  }
+
+  debug('upload', result.statusText, result.data.Hash);
+
+  if (cid !== result.data.Hash) {
+    throw new Error('Invalid CID generated locally');
   }
 
   return cid;

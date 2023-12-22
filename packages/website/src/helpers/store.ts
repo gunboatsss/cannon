@@ -26,10 +26,7 @@ export interface State {
     ipfsApiUrl: string;
     isIpfsGateway: boolean;
     stagingUrl: string;
-    publishTags: string;
-    preset: string;
     registryAddress: string;
-    forkProviderUrl: string;
     customProviders: string[];
     pythUrl: string;
   };
@@ -60,10 +57,7 @@ export const initialState = {
     ipfsApiUrl: 'https://repo.usecannon.com/',
     isIpfsGateway: false,
     stagingUrl: 'https://cannon-safe-app.external.dbeal.dev',
-    publishTags: 'latest',
-    preset: 'main',
     registryAddress: '0x8E5C7EFC9636A6A0408A46BB7F617094B81e5dba',
-    forkProviderUrl: '',
     customProviders: [],
     pythUrl: 'https://hermes.pyth.network',
   },
@@ -113,11 +107,12 @@ const useStore = create<Store>()(
         }));
       },
     }),
-    // Persist only settings and safe addresses on local storage
+    // Persist only settings, current safe and safe addresses on local storage
     {
       name: 'cannon-state',
       partialize: (state) => ({
         settings: state.settings,
+        currentSafe: state.currentSafe,
         safeAddresses: state.safeAddresses,
       }),
       merge: (persisted, initial) => deepmerge(initial, persisted) as Store,

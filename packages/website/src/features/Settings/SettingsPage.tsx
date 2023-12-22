@@ -28,26 +28,6 @@ import {
 import { CloseIcon } from '@chakra-ui/icons';
 import entries from 'just-entries';
 import { Store, initialState, useStore } from '@/helpers/store';
-import { validatePreset } from '@/helpers/cannon';
-import axios, { AxiosError } from 'axios';
-
-export async function isIpfsGateway(ipfsUrl: string) {
-  let isGateway = true;
-  try {
-    ipfsUrl = ipfsUrl.endsWith('/') ? ipfsUrl : ipfsUrl + '/';
-    await axios.post(ipfsUrl + 'api/v0/cat', null, { timeout: 15 * 1000 });
-  } catch (err: unknown) {
-    if (
-      err instanceof AxiosError &&
-      err.response?.status === 400 &&
-      err.response?.data.includes('argument "ipfs-path" is required')
-    ) {
-      isGateway = false;
-    }
-  }
-
-  return isGateway;
-}
 
 type Setting = {
   title: string;
@@ -72,29 +52,9 @@ const SETTINGS: Record<
     description:
       'The same collection service URL must be used by all signers for a given transaction. Hosting Instructions: https://github.com/usecannon/cannon-safe-app-backend ',
   },
-  publishTags: {
-    title: 'Package Tags',
-    description:
-      'Custom tags to add to the published Cannon package. Should be a string separated by commas.',
-  },
-  preset: {
-    title: 'Package Preset',
-    placeholder: 'main',
-    description: 'Select the preset that will be used to build the package.',
-    validate: (val: any) => {
-      if (val && !validatePreset(val)) {
-        return 'Invalid preset. Should only include lowercase letters.';
-      }
-    },
-  },
   registryAddress: {
     title: 'Registry Address',
     description: 'Contract address of the Cannon Registry.',
-  },
-  forkProviderUrl: {
-    title: 'RPC URL for Local Fork',
-    description:
-      'JSON RPC url to create the local fork where the build will be executed.',
   },
 };
 
@@ -304,9 +264,27 @@ export default function SettingsPage() {
           borderColor="gray.600"
           borderRadius="4px"
         >
-          <Heading size="md" mb={3}>
+          <Heading size="md" mb={2}>
             IPFS
           </Heading>
+          <Text fontSize="md" mb={4}>
+            Cannon works with an{' '}
+            <Link
+              isExternal
+              href="https://docs.ipfs.tech/reference/http/gateway/"
+            >
+              IPFS HTTP Gateway URL
+            </Link>{' '}
+            or a{' '}
+            <Link isExternal href="https://docs.ipfs.tech/reference/kubo/rpc/">
+              Kubo RPC API URL
+            </Link>
+            . It must be a Kubo RPC API URL to publish packages using the{' '}
+            <Link as={NextLink} href="/deploy">
+              deployer
+            </Link>
+            .
+          </Text>
           <FormControl>
             <FormLabel>HTTP API URL</FormLabel>
             <Input
@@ -317,32 +295,21 @@ export default function SettingsPage() {
               name={'ipfsApiUrl'}
               onChange={async (evt) => {
                 setSettings({ ipfsApiUrl: evt.target.value });
-                setSettings({
-                  isIpfsGateway: await isIpfsGateway(evt.target.value),
-                });
               }}
             />
-            <FormHelperText color="gray.300">
-              This is an{' '}
-              <Link
-                isExternal
-                href="https://docs.ipfs.tech/reference/http/gateway/"
-              >
-                IPFS HTTP Gateway URL
-              </Link>{' '}
-              or a{' '}
-              <Link
-                isExternal
-                href="https://docs.ipfs.tech/reference/kubo/rpc/"
-              >
-                Kubo RPC API URL
-              </Link>
-              . It must be a Kubo RPC API URL to publish packages using the{' '}
-              <Link as={NextLink} href="/deploy">
-                deployer
-              </Link>
-              .
-            </FormHelperText>
+            {settings.isIpfsGateway && (
+              <FormHelperText color="gray.200">
+                ⚠️ This appears to be an IPFS gateway. You must change this to a
+                Kubo RPC API URL to publish packages using the deployer.
+              </FormHelperText>
+            )}
+            {settings.ipfsApiUrl.includes('https://repo.usecannon.com') && (
+              <FormHelperText color="gray.200">
+                ⚠️ Currently, the Cannon IPFS Repo only supports downloading
+                files from IPFS. You must change this to a Kubo RPC API URL to
+                publish packages using the deployer.
+              </FormHelperText>
+            )}
           </FormControl>
         </Box>
         <Box

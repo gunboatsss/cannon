@@ -1,23 +1,21 @@
-import _ from 'lodash';
+import { bold, yellow } from 'chalk';
 import Debug from 'debug';
-import { yellow, bold } from 'chalk';
-
+import _ from 'lodash';
 import { z } from 'zod';
+import { computeTemplateAccesses } from '../access-recorder';
+import { build, createInitialContext, getOutputs } from '../builder';
+import { CANNON_CHAIN_ID } from '../constants';
+import { ChainDefinition } from '../definition';
+import { PackageReference } from '../package';
+import { ChainBuilderRuntime, Events } from '../runtime';
 import { provisionSchema } from '../schemas.zod';
-
 import {
-  ChainBuilderContext,
   ChainArtifacts,
+  ChainBuilderContext,
   ChainBuilderContextWithHelpers,
   DeploymentState,
   PackageState,
 } from '../types';
-import { build, createInitialContext, getOutputs } from '../builder';
-import { ChainDefinition } from '../definition';
-import { ChainBuilderRuntime, Events } from '../runtime';
-import { CANNON_CHAIN_ID } from '../constants';
-import { computeTemplateAccesses } from '../access-recorder';
-import { PackageReference } from '../package';
 
 const debug = Debug('cannon:builder:provision');
 
@@ -62,7 +60,6 @@ const provisionSpec = {
       }
     }
 
-    // todo: might be worth refactoring all these functions that take in package names to expect a preset in the ref
     const srcUrl = await runtime.registry.getUrl(source, chainId);
 
     return {
@@ -75,22 +72,25 @@ const provisionSpec = {
   configInject(ctx: ChainBuilderContextWithHelpers, config: Config, packageState: PackageState) {
     config = _.cloneDeep(config);
 
-    const packageRef = new PackageReference(_.template(config.source)(ctx));
+    const ref = new PackageReference(_.template(config.source)(ctx));
+
+    config.source = ref.fullPackageRef;
 
     if (config.sourcePreset) {
       console.warn(
         yellow(
           bold(
-            `The sourcePreset option is deprecated. Using ${_.template(config.sourcePreset)(
+            `The sourcePreset option will be deprecated soon. Using ${_.template(config.sourcePreset)(
               ctx
-            )}. Reference presets in the source option like name@version:preset`
+            )}. Reference presets in the "source" option like so: name@version:preset`
           )
         )
       );
+
+      config.source = PackageReference.from(ref.name, ref.version, config.sourcePreset).fullPackageRef;
     }
 
-    config.source = packageRef.fullPackageRef;
-    config.sourcePreset = _.template(config.sourcePreset)(ctx) || packageRef.preset;
+    config.sourcePreset = _.template(config.sourcePreset)(ctx);
     config.targetPreset = _.template(config.targetPreset)(ctx) || `with-${packageState.name}`;
 
     if (config.options) {
@@ -137,9 +137,9 @@ const provisionSpec = {
     const importLabel = packageState.currentLabel.split('.')[1] || '';
     debug('exec', config);
 
-    const packageRef = new PackageReference(config.source);
-    const source = packageRef.fullPackageRef;
-    const sourcePreset = config.sourcePreset || packageRef.preset;
+    const sourceRef = new PackageReference(config.source);
+    const source = sourceRef.fullPackageRef;
+    const sourcePreset = config.sourcePreset;
     const targetPreset = config.targetPreset ?? 'main';
     const chainId = config.chainId ?? CANNON_CHAIN_ID;
 
@@ -147,7 +147,9 @@ const provisionSpec = {
     const deployInfo = await runtime.readDeploy(source, chainId);
     if (!deployInfo) {
       throw new Error(
-        `deployment not found: ${source}. please make sure it exists for preset ${sourcePreset} and network ${chainId}.`
+        `deployment not found: ${source}. please make sure it exists for preset ${
+          sourcePreset || sourceRef.preset
+        } and network ${chainId}.`
       );
     }
 
