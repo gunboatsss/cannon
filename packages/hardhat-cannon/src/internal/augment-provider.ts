@@ -27,9 +27,9 @@ class CannonWrapperProvider extends ProviderWrapper {
 }
 
 export async function augmentProvider(hre: HardhatRuntimeEnvironment, artifacts: ChainArtifacts = {}) {
-  const { createProviderProxy } = await import('@nomiclabs/hardhat-ethers/internal/provider-proxy');
-
   if (hre.network.name === 'cannon') {
+    const { createProviderProxy } = await import('@nomiclabs/hardhat-ethers/internal/provider-proxy');
+
     hre.config.networks.cannon.url = `http://127.0.0.1:${hre.config.networks.cannon.port}`;
 
     const baseProvider = await createProvider(hre.config, hre.network.name, hre.artifacts);
